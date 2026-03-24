@@ -1,0 +1,409 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  color: var(--white);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.heroContent {
+  max-width: 900px;
+  text-align: left;
+  z-index: 2;
+  position: relative;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 32px;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 48px;
+  max-width: 720px;
+}
+
+.ctaGroup {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 64px;
+  flex-wrap: wrap;
+}
+
+.heroStats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-light);
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* President Section */
+.presidentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.presidentCard {
+  background: var(--primary-dark);
+  padding: 48px;
+  border-radius: var(--radius-lg);
+  color: var(--white);
+  box-shadow: var(--shadow-xl);
+  position: relative;
+}
+
+.quoteIcon {
+  color: var(--primary-light);
+  opacity: 0.4;
+  margin-bottom: 24px;
+}
+
+.presidentHeader {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary-light);
+  margin-bottom: 20px;
+}
+
+.presidentQuote {
+  font-size: 1.4rem;
+  line-height: 1.4;
+  font-family: var(--font-display);
+  font-style: italic;
+  margin-bottom: 32px;
+}
+
+.presidentInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatarPlaceholder {
+  width: 56px;
+  height: 56px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+}
+
+.presidentName {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.presidentTitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.messageContent {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Mandate Cards */
+.mandateCard {
+  background: var(--white);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.mandateCard:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.mandateIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.mandateTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  line-height: 1.3;
+  position: relative;
+  z-index: 2;
+}
+
+.mandateLetter {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 5rem;
+  font-weight: 900;
+  color: var(--gray-50);
+  z-index: 0;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Impact Wrapper */
+.impactWrapper {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.impactList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  list-style: none;
+}
+
+.impactList li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.impactImage {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.impactImage img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+}
+
+.imageOverlay {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: var(--radius);
+  color: white;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.overlayText h3 {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  color: var(--primary-light);
+}
+
+.overlayText p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Vision Cards */
+.visionCard {
+  background: var(--white);
+  padding: 48px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  height: 100%;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.accentBar {
+  position: absolute;
+  left: -48px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 48px;
+  border-radius: 0 4px 4px 0;
+}
+
+.valuesGrid {
+  margin-top: 100px;
+}
+
+.valueItem {
+  text-align: center;
+  padding: 40px 32px;
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  transition: var(--transition);
+  border: 1px solid transparent;
+}
+
+.valueItem:hover {
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-soft);
+}
+
+.valueIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 24px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Role Cards */
+.roleCard {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: var(--transition);
+}
+
+.roleCard:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--primary-light);
+}
+
+.roleHeader {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-family: var(--font-display);
+}
+
+.roleCard p {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}
+
+.roleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-light);
+  text-decoration: none;
+}
+
+/* Final CTA */
+.finalCta {
+  background: var(--primary-soft);
+  padding: 100px 40px;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.ctaTextContent {
+  max-width: 800px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1024px) {
+  .presidentGrid, .impactWrapper {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+  .accentBar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.8rem;
+  }
+  .heroContent {
+    text-align: center;
+  }
+  .heroStats {
+    justify-content: center;
+  }
+  .ctaGroup {
+    justify-content: center;
+  }
+  .finalCta {
+    padding: 64px 24px;
+  }
+  .presidentCard {
+    padding: 32px;
+  }
+  .mandateCard {
+    padding: 32px;
+  }
+}

@@ -1,0 +1,35 @@
+.pageHero {
+  background: linear-gradient(135deg, #061c10 0%, #0D4A2F 60%, #1a6e45 100%);
+  padding: 120px 0 80px; text-align: center;
+}
+
+/* Who */
+.whoGrid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 80px; align-items: start; }
+.whoStats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.whoStatCard { background: var(--white); border-radius: var(--radius-lg); padding: 28px; border-top: 4px solid; box-shadow: var(--shadow-sm); }
+.whoStatValue { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin-bottom: 4px; }
+.whoStatLabel { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); }
+
+/* Mission/Vision */
+.mvSection { background: var(--gray-50); }
+.mvGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.mvCard { background: var(--primary-soft); border-radius: var(--radius-xl); padding: 48px; }
+.mvIcon { width: 64px; height: 64px; background: var(--primary-soft); color: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.mvTitle { font-family: var(--font-display); font-size: 1.8rem; color: var(--primary-dark); margin-bottom: 16px; }
+.mvText { font-size: 1.05rem; line-height: 1.8; color: var(--text-secondary); }
+
+/* Timeline */
+.timeline { position: relative; max-width: 800px; margin: 0 auto; }
+.timeline::before { content: ''; position: absolute; left: 50%; width: 2px; height: 100%; background: var(--border); transform: translateX(-50%); }
+.timelineItem { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 24px; align-items: center; margin-bottom: 40px; }
+.tlLeft .tlYear { text-align: right; font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--secondary); }
+.tlLeft .tlCard { order: 3; }
+.tlRight .tlYear { order: 3; font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--secondary); }
+.tlDot { width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 3px solid var(--white); box-shadow: 0 0 0 3px var(--primary); margin: 0 auto; }
+.tlCard { background: var(--white); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; }
+
+/* Values */
+.valuesSection { background: var(--gray-50); }
+
+@media (max-width: 1024px) { .whoGrid { grid-template-columns: 1fr; gap: 48px; } .mvGrid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .timeline::before { left: 20px; } .timelineItem { grid-template-columns: 40px 1fr; } .tlLeft .tlYear, .tlRight .tlYear { display: none; } .tlLeft .tlCard { order: unset; } .tlRight .tlYear { order: unset; } }

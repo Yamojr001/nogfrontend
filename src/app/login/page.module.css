@@ -1,0 +1,21 @@
+.page {
+  min-height: 100vh; background: linear-gradient(135deg, #061c10 0%, #0D4A2F 60%, #1a6e45 100%);
+  display: flex; align-items: center; justify-content: center; padding: 40px 20px;
+}
+.card {
+  background: white; border-radius: 24px; padding: 48px; width: 100%; max-width: 460px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.25);
+}
+.logoBox { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.logoIcon {
+  width: 48px; height: 48px; background: var(--primary); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 1.4rem; color: white; font-weight: 800;
+}
+.logoTitle { font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); }
+.logoSub { font-size: 0.7rem; color: var(--text-muted); }
+.title { font-family: var(--font-display); font-size: 1.8rem; color: var(--primary-dark); margin-bottom: 8px; }
+.subtitle { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 32px; }
+.roleInfo { margin-top: 24px; padding: 16px; background: var(--gray-50); border-radius: 12px; }
+.rolesList { display: flex; flex-wrap: wrap; gap: 6px; }
+.links { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; color: var(--text-secondary); }
