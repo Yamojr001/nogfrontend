@@ -102,7 +102,7 @@ export default function PartnerProductsPage() {
                                         <TableRow key={p.id} hover>
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#f1f5f9', color: '#64748b' }}><ProductIcon fontSize="small" /></Avatar>
+                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#f1f5f9', color: '#64748b' }}><MoneyIcon fontSize="small" /></Avatar>
                                                     <Typography sx={{ fontWeight: 700 }}>{p.name}</Typography>
                                                 </Box>
                                             </TableCell>

@@ -11,7 +11,7 @@ import {
   Person as PersonIcon,
   Mail as MailIcon,
   Phone as PhoneIcon,
-  MapPin as MapIcon,
+    LocationOn as MapIcon,
   CameraAlt as CameraIcon,
   Shield as ShieldIcon,
   Notifications as BellIcon,

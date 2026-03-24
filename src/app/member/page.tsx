@@ -46,8 +46,8 @@ export default function MemberDashboard() {
     <Box sx={{ p: 2 }}>
       <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 4, mb: 3 }} />
       <Grid container spacing={2}>
-        <Grid item xs={6}><Skeleton variant="rectangular" height={100} sx={{ borderRadius: 4 }} /></Grid>
-        <Grid item xs={6}><Skeleton variant="rectangular" height={100} sx={{ borderRadius: 4 }} /></Grid>
+        <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={100} sx={{ borderRadius: 4 }} /></Grid>
+        <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={100} sx={{ borderRadius: 4 }} /></Grid>
       </Grid>
       <Skeleton variant="text" sx={{ mt: 4, mb: 1 }} />
       <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 4 }} />
@@ -115,7 +115,7 @@ export default function MemberDashboard() {
 
       {/* Stats Grid */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Card sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', bgcolor: '#f8fafc', boxShadow: 'none' }}>
             <CardContent sx={{ p: 2 }}>
               <Box sx={{ color: '#C9962B', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -127,7 +127,7 @@ export default function MemberDashboard() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Card sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', bgcolor: '#f8fafc', boxShadow: 'none' }}>
             <CardContent sx={{ p: 2 }}>
               <Box sx={{ color: '#10b981', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>

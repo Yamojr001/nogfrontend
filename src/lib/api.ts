@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://nogbackend.vercel.app/';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://nogbackend.vercel.app';
 
 const api = axios.create({
   baseURL: `${API_BASE}/api`,

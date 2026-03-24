@@ -51,9 +51,9 @@ export default function PartnerApprovalsPage() {
   const handleConfirm = async () => {
     try {
       if (selected.action === 'approve') {
-        await approveRequest(selected.dbId, 1, reason); // mock approverId = 1
+        await approveRequest(selected.dbId, reason);
       } else {
-        await rejectRequest(selected.dbId, 1, reason);
+        await rejectRequest(selected.dbId, reason);
       }
       setSelected(null);
       setReason('');

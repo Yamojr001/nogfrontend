@@ -53,7 +53,7 @@ export default function SavingsPage() {
             <Typography variant="body2" sx={{ opacity: 0.8, fontWeight: 600 }}>Total Savings Balance</Typography>
             <Typography variant="h3" sx={{ fontWeight: 900, mt: 1 }}>₦{balance.toLocaleString()}</Typography>
             <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TrendingUp size={16} />
+              <TrendingUp sx={{ fontSize: 16 }} />
               <Typography variant="caption" sx={{ fontWeight: 700 }}>+4.2% from last month</Typography>
             </Box>
           </Paper>

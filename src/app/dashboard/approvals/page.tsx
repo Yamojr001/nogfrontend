@@ -11,7 +11,7 @@ import { Search as SearchIcon, CheckCircle, Cancel, HourglassEmpty } from '@mui/
 
 
 const statusColor: Record<string, any> = { PENDING: 'warning', APPROVED: 'info', EXECUTED: 'success', REJECTED: 'error' };
-const statusIcon: Record<string, React.ReactNode> = {
+const statusIcon: Record<string, React.ReactElement> = {
   PENDING: <HourglassEmpty sx={{ fontSize: 14 }} />,
   APPROVED: <CheckCircle sx={{ fontSize: 14 }} />,
   EXECUTED: <CheckCircle sx={{ fontSize: 14 }} />,

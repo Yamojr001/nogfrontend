@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { 
   Box, Typography, Grid, Paper, Card, Button, 
-  Avatar, LinearProgress, Divider, Stack,
+    Avatar, LinearProgress, Divider, Stack, Chip,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, Tooltip, CircularProgress
 } from "@mui/material";
@@ -22,6 +22,8 @@ import api from '@/lib/api';
 export default function ReportsPage() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const financials = stats?.financials ?? {};
+    const demographics = stats?.demographics ?? {};
 
     useEffect(() => {
         fetchStats();
