@@ -1,26 +1,21 @@
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Youtube, ArrowRight } from 'lucide-react';
-import styles from './Footer.module.css';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Youtube, Quote, Globe } from 'lucide-react';
 
 const footerLinks = {
-  organisation: [
-    { label: 'About NOGALSS', href: '/about' },
-    { label: 'Vision & Mission', href: '/vision' },
-    { label: 'Governance', href: '/governance' },
-    { label: 'International Partnerships', href: '/partnerships' },
+  quickLinks: [
+    { label: 'About Us', href: '/about' },
+    { label: 'What We Do', href: '/what-we-do' },
+    { label: 'Membership', href: '/membership' },
+    { label: 'News & Announcements', href: '/news' },
+    { label: 'Contact Us', href: '/contact' },
   ],
   services: [
-    { label: 'Cooperative Savings', href: '/financial-services#savings' },
-    { label: 'Loans & Financing', href: '/financial-services#loans' },
-    { label: 'Empowerment Programs', href: '/empowerment' },
-    { label: 'What We Do', href: '/what-we-do' },
-  ],
-  membership: [
-    { label: 'Become a Member', href: '/membership' },
-    { label: 'Register Individual', href: '/register/member' },
-    { label: 'Register Organisation', href: '/register/partner' },
-    { label: 'Login Portal', href: '/login' },
-  ],
+    { label: 'Cooperative Savings', href: '/services/savings' },
+    { label: 'Member Loans', href: '/services/loans' },
+    { label: 'Empowerment Programs', href: '/services/empowerment' },
+    { label: 'Training & Certification', href: '/services/training' },
+    { label: 'Digital Banking', href: '/portal' },
+  ]
 };
 
 const socials = [
@@ -32,82 +27,143 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer className={styles.footer}>
-      {/* CTA Strip */}
-      <div className={styles.ctaStrip}>
-        <div className="container">
-          <div className={styles.ctaInner}>
-            <div>
-              <h3 className={styles.ctaTitle}>Ready to Join Nigeria's Premier Cooperative?</h3>
-              <p className={styles.ctaText}>Empowering over 100,000+ members across Nigeria's skilled workforce.</p>
+    <footer className="bg-slate-900 text-slate-300 pt-20 pb-10">
+      <div className="container">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
+          {/* Brand Column */}
+          <div className="lg:col-span-4 space-y-6">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-14 h-14 flex-shrink-0 bg-white rounded-xl p-2">
+                <img 
+                  src="/logo.png" 
+                  alt="NOGALSS Logo" 
+                  className="object-contain w-full h-full"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-extrabold text-white tracking-tight uppercase">
+                  NOGALSS
+                </span>
+                <span className="text-[10px] font-bold text-[#008A62] tracking-widest uppercase opacity-80">
+                  National Apex Cooperative
+                </span>
+              </div>
+            </Link>
+            
+            <p className="text-slate-400 leading-relaxed text-sm font-medium">
+              National Umbrella Body for Skilled-Based, Artisans, NGOs, CSOs, Associations and Literacy-Focused Cooperatives across Nigeria.
+            </p>
+
+            <div className="bg-[#008A62]/10 p-4 rounded-xl border border-[#008A62]/20 mt-4">
+              <p className="text-[#00DDA3] font-bold italic text-sm flex gap-2">
+                <Quote size={16} className="shrink-0" />
+                "We work, save and grow together"
+              </p>
             </div>
-            <div className={styles.ctaBtns}>
-              <Link href="/register/member" className="btn btn-secondary btn-lg">
-                Become a Member <ArrowRight size={16} />
-              </Link>
-              <Link href="/register/partner" className="btn btn-outline">
-                Register Organisation
-              </Link>
+
+            <div className="flex items-center gap-3 pt-4">
+              {socials.map(({ icon: Icon, href, label }) => (
+                <a 
+                  key={label} 
+                  href={href} 
+                  aria-label={label} 
+                  className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-[#008A62] hover:text-white transition-all text-slate-400"
+                >
+                  <Icon size={18} />
+                </a>
+              ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Footer */}
-      <div className={styles.main}>
-        <div className="container">
-          <div className={styles.grid}>
-            {/* Brand */}
-            <div className={styles.brand}>
-              <div className={styles.logoWrap}>
-                <img src="/logo.png" alt="NOGALSS Logo" width={56} height={56} style={{ objectFit: 'contain' }} />
-                <div>
-                  <div className={styles.logoName}>NOGALSS</div>
-                  <div className={styles.logoTagline}>National Apex Cooperative</div>
+          {/* Quick Links Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <h5 className="text-white font-bold uppercase tracking-wider text-sm border-l-2 border-[#008A62] pl-3">
+              Quick Links
+            </h5>
+            <ul className="space-y-4">
+              {footerLinks.quickLinks.map((link) => (
+                <li key={link.label}>
+                  <Link 
+                    href={link.href} 
+                    className="text-slate-400 hover:text-[#008A62] hover:translate-x-1 transition-all inline-block text-sm"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services Column */}
+          <div className="lg:col-span-3 space-y-6">
+            <h5 className="text-white font-bold uppercase tracking-wider text-sm border-l-2 border-[#008A62] pl-3">
+              Our Services
+            </h5>
+            <ul className="space-y-4">
+              {footerLinks.services.map((link) => (
+                <li key={link.label}>
+                  <Link 
+                    href={link.href} 
+                    className="text-slate-400 hover:text-[#008A62] hover:translate-x-1 transition-all inline-block text-sm"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact Us Column */}
+          <div className="lg:col-span-3 space-y-6">
+            <h5 className="text-white font-bold uppercase tracking-wider text-sm border-l-2 border-[#008A62] pl-3">
+              Contact Us
+            </h5>
+            <div className="space-y-4 text-sm text-slate-400">
+              <div className="flex items-start gap-3 hover:text-white transition-colors">
+                <div className="p-2 rounded-lg bg-slate-800 text-[#008A62] shrink-0">
+                  <MapPin size={16} />
+                </div>
+                <span className="leading-relaxed">
+                  4th Floor, Jibril Aminu House, National Commission for Colleges of Education, Plot 829, Ralph Shodeinde Street, Central Business District, Abuja FCT
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-3 hover:text-white transition-colors">
+                <div className="p-2 rounded-lg bg-slate-800 text-[#008A62] shrink-0">
+                  <Phone size={16} />
+                </div>
+                <div className="flex flex-col">
+                  <a href="tel:08067659229">08067659229</a>
+                  <a href="tel:09078077777">09078077777</a>
                 </div>
               </div>
-              <p className={styles.brandDesc}>
-                NOGALSS National Apex Cooperative Society Limited — uniting Nigeria's skilled workforce through cooperative power and financial empowerment.
-              </p>
-              <div className={styles.contact}>
-                <a href="tel:08067659229" className={styles.contactItem}><Phone size={14} /> 0806 765 9229</a>
-                <a href="mailto:info@nogalssapexcoop.org" className={styles.contactItem}><Mail size={14} /> info@nogalssapexcoop.org</a>
-                <span className={styles.contactItem}><MapPin size={14} /> Abuja, FCT, Nigeria</span>
-              </div>
-              <div className={styles.socials}>
-                {socials.map(({ icon: Icon, href, label }) => (
-                  <a key={label} href={href} aria-label={label} className={styles.socialLink}>
-                    <Icon size={16} />
-                  </a>
-                ))}
-              </div>
-            </div>
 
-            {/* Links */}
-            {Object.entries(footerLinks).map(([key, links]) => (
-              <div key={key} className={styles.linkCol}>
-                <h5 className={styles.colTitle}>{key === 'organisation' ? 'Organisation' : key === 'services' ? 'Services' : 'Membership'}</h5>
-                <ul className={styles.linkList}>
-                  {links.map((l) => (
-                    <li key={l.label}><Link href={l.href} className={styles.footerLink}>{l.label}</Link></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+              <a href="mailto:info@nogalssapexcoop.org" className="flex items-center gap-3 hover:text-white transition-colors">
+                <div className="p-2 rounded-lg bg-slate-800 text-[#008A62] shrink-0">
+                  <Mail size={16} />
+                </div>
+                <span>info@nogalssapexcoop.org</span>
+              </a>
+
+              <a href="https://www.nogalssapexcoop.org" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-white transition-colors">
+                <div className="p-2 rounded-lg bg-slate-800 text-[#008A62] shrink-0">
+                  <Globe size={16} />
+                </div>
+                <span>www.nogalssapexcoop.org</span>
+              </a>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Bottom bar */}
-      <div className={styles.bottom}>
-        <div className="container">
-          <div className={styles.bottomInner}>
-            <p className={styles.copyright}>© {new Date().getFullYear()} NOGALSS National Apex Cooperative Society Limited. All rights reserved.</p>
-            <div className={styles.bottomLinks}>
-              <Link href="/privacy" className={styles.bottomLink}>Privacy Policy</Link>
-              <Link href="/terms" className={styles.bottomLink}>Terms of Use</Link>
-              <Link href="/accessibility" className={styles.bottomLink}>Accessibility</Link>
-            </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-slate-500 text-center md:text-left">
+            © 2026 NOGALSS National Apex Cooperative Society Limited. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="text-xs text-slate-500 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="text-xs text-slate-500 hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

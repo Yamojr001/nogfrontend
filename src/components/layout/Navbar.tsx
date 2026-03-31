@@ -2,21 +2,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown } from 'lucide-react';
-import styles from './Navbar.module.css';
+import { Menu, X } from 'lucide-react';
 
 const navLinks = [
-  { label: 'About', href: '/about' },
+  { label: 'Home', href: '/' },
+  { label: 'About Us', href: '/about' },
   { label: 'What We Do', href: '/what-we-do' },
-  {
-    label: 'Services', href: '#', children: [
-      { label: 'Financial Services', href: '/financial-services' },
-      { label: 'Empowerment Programs', href: '/empowerment' },
-      { label: 'Membership', href: '/membership' },
-    ]
-  },
-  { label: 'Governance', href: '/governance' },
-  { label: 'Partnerships', href: '/partnerships' },
+  { label: 'Membership', href: '/membership' },
   { label: 'News', href: '/news' },
   { label: 'Contact', href: '/contact' },
 ];
@@ -24,99 +16,128 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
-    <>
-      <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
-        <div className="container">
-          <div className={styles.inner}>
-            {/* Logo */}
-            <Link href="/" className={styles.logo}>
-              <img src="/logo.png" alt="NOGALSS Logo" width={48} height={48} style={{ objectFit: 'contain' }} />
-              <div className={styles.logoText}>
-                <span className={styles.logoTitle}>NOGALSS</span>
-                <span className={styles.logoSub}>National Apex Cooperative</span>
-              </div>
-            </Link>
+    <nav 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white shadow-md py-3' : 'bg-white/95 backdrop-blur-sm py-4'
+      }`}
+    >
+      <div className="container flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
+          <div className="relative w-12 h-12 flex-shrink-0">
+            <img 
+              src="/logo.png" 
+              alt="NOGALSS Logo" 
+              className="object-contain w-full h-full"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-bold leading-tight text-primary uppercase tracking-wide">
+              NATIONAL APEX COOPERATIVE
+            </span>
+            <span className="text-[10px] font-semibold leading-tight text-primary/80 uppercase">
+              SOCIETY LTD
+            </span>
+          </div>
+        </Link>
 
-            {/* Desktop Nav */}
-            <ul className={styles.navLinks}>
-              {navLinks.map((link) => (
-                <li
-                  key={link.label}
-                  className={`${styles.navItem} ${link.children ? styles.hasDropdown : ''}`}
-                  onMouseEnter={() => link.children && setActiveDropdown(link.label)}
-                  onMouseLeave={() => setActiveDropdown(null)}
+        {/* Desktop Nav */}
+        <div className="hidden lg:flex items-center gap-10">
+          <ul className="flex items-center gap-8">
+            {navLinks.map((link) => (
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  className={`text-[15px] font-medium transition-all hover:text-primary relative group ${
+                    pathname === link.href ? 'text-primary' : 'text-foreground/80'
+                  }`}
                 >
-                  <Link
-                    href={link.href}
-                    className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
-                  >
-                    {link.label}
-                    {link.children && <ChevronDown size={14} />}
-                  </Link>
-                  {link.children && activeDropdown === link.label && (
-                    <ul className={styles.dropdown}>
-                      {link.children.map((child) => (
-                        <li key={child.label}>
-                          <Link href={child.href} className={styles.dropdownLink}>{child.label}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
+                  {link.label}
+                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full ${
+                    pathname === link.href ? 'w-full' : ''
+                  }`} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-            {/* CTA Buttons */}
-            <div className={styles.ctaGroup}>
-              <Link href="/login" className={`btn btn-outline btn-sm ${scrolled ? styles.portalBtnScrolled : ''}`} style={{ border: scrolled ? '1.5px solid var(--primary)' : 'none' }}>Member Portal</Link>
-              <Link href="/register/member" className="btn btn-primary btn-sm">Become a Member</Link>
-            </div>
+        {/* CTA Buttons */}
+        <div className="hidden lg:flex items-center gap-4">
+          <Link 
+            href="/register/member" 
+            className="px-6 py-2.5 rounded-lg border-2 border-primary text-primary text-[14px] font-bold hover:bg-primary/5 transition-all"
+          >
+            Become a Member
+          </Link>
+          <Link 
+            href="/login" 
+            className="px-6 py-2.5 rounded-lg bg-primary text-white text-[14px] font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
+          >
+            Member Portal
+          </Link>
+        </div>
 
-            {/* Mobile Toggle */}
-            <button className={styles.mobileToggle} onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+        {/* Mobile Toggle */}
+        <button 
+          className="lg:hidden p-2 text-primary bg-primary/5 rounded-md"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <div 
+        className={`lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-100 transition-all duration-500 ease-in-out shadow-2xl overflow-hidden ${
+          mobileOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="container py-8 flex flex-col gap-8">
+          <ul className="flex flex-col gap-5">
+            {navLinks.map((link) => (
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  className={`text-lg font-semibold transition-colors ${
+                    pathname === link.href ? 'text-primary px-4 border-l-4 border-primary' : 'text-foreground/80 px-4'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-col gap-4 pt-6 border-t border-gray-100">
+            <Link 
+              href="/register/member" 
+              className="w-full py-4 rounded-xl border-2 border-primary text-primary text-center font-bold"
+            >
+              Become a Member
+            </Link>
+            <Link 
+              href="/login" 
+              className="w-full py-4 rounded-xl bg-primary text-white text-center font-bold shadow-lg shadow-primary/10"
+            >
+              Member Portal
+            </Link>
           </div>
         </div>
-      </nav>
-
-      {/* Mobile Drawer */}
-      <div className={`${styles.mobileDrawer} ${mobileOpen ? styles.drawerOpen : ''}`}>
-        <ul className={styles.mobileLinks}>
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <Link href={link.href} className={styles.mobileLink}>{link.label}</Link>
-              {link.children && (
-                <ul className={styles.mobileSubLinks}>
-                  {link.children.map((child) => (
-                    <li key={child.label}>
-                      <Link href={child.href} className={styles.mobileSubLink}>{child.label}</Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-        <div className={styles.mobileCtaGroup}>
-          <Link href="/login" className="btn btn-outline-dark">Login Portal</Link>
-          <Link href="/register/member" className="btn btn-primary">Become a Member</Link>
-          <Link href="/register/partner" className="btn btn-secondary">Register Organisation</Link>
-        </div>
       </div>
-      {mobileOpen && <div className={styles.overlay} onClick={() => setMobileOpen(false)} />}
-    </>
+    </nav>
   );
 }
