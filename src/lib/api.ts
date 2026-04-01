@@ -92,9 +92,24 @@ export async function registerMember(payload: Record<string, any>) {
   return data;
 }
 
-// ─── Organisations ──────────────────────────────────────────────────────────
+// ─── Organisations & Hierarchy ────────────────────────────────────────────────
 export async function registerOrganisation(payload: Record<string, any>) {
   const { data } = await api.post('/organisations', payload);
+  return data;
+}
+
+export async function fetchHierarchyOrganisations() {
+  const { data } = await api.get('/auth/hierarchy/organisations');
+  return data;
+}
+
+export async function fetchHierarchySubOrgs(orgId: number) {
+  const { data } = await api.get(`/auth/hierarchy/organisations/${orgId}/sub-orgs`);
+  return data;
+}
+
+export async function fetchHierarchyGroups(subOrgId: number) {
+  const { data } = await api.get(`/auth/hierarchy/sub-orgs/${subOrgId}/groups`);
   return data;
 }
 

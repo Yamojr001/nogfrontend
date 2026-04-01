@@ -1,36 +1,73 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle, ChevronRight, ChevronLeft, User, Phone, Building2, ShieldCheck, Lock } from 'lucide-react';
-import { registerMember } from '@/lib/api';
-import styles from './page.module.css';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  CheckCircle2, ChevronRight, ChevronLeft, User, Phone, 
+  Building2, ShieldCheck, Lock, Activity, Landmark, HeartHandshake, Shield, ChevronDown
+} from 'lucide-react';
+import { 
+  registerMember, fetchHierarchyOrganisations, 
+  fetchHierarchySubOrgs, fetchHierarchyGroups 
+} from '@/lib/api';
 
 const steps = [
   { id: 1, title: 'Personal', icon: User },
   { id: 2, title: 'Contact', icon: Phone },
   { id: 3, title: 'Affiliation', icon: Building2 },
-  { id: 4, title: 'Banking', icon: ShieldCheck },
-  { id: 5, title: 'Next of Kin', icon: User },
-  { id: 6, title: 'Savings', icon: CheckCircle },
+  { id: 4, title: 'Banking', icon: Landmark },
+  { id: 5, title: 'Next of Kin', icon: HeartHandshake },
+  { id: 6, title: 'Savings', icon: Activity },
   { id: 7, title: 'Security', icon: Lock },
 ];
 
 export default function MemberRegistrationPage() {
+  const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const [organisations, setOrganisations] = useState<any[]>([]);
+  const [subOrgs, setSubOrgs] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  
   const [form, setForm] = useState({
     firstName: '', lastName: '', dateOfBirth: '', gender: '', maritalStatus: '',
     nationality: 'Nigerian', stateOfOrigin: '', occupation: '', educationalQualification: '',
     email: '', phone: '', address: '', state: '', lga: '',
-    membershipType: 'individual', organisationId: '', subOrgId: '',
-    extOrgName: '', extPosition: '', extStateChapter: '',
-    bankName: '', accountName: '', accountNumber: '', bvn: '', nin: '',
+    membershipType: 'individual', organisationId: '', subOrgId: '', groupId: '',
+    bankName: '', accountName: '', accountNumber: '', bvn: '',
     nokName: '', nokRelationship: '', nokPhone: '', nokAddress: '',
     savingsFrequency: 'monthly', proposedSavingsAmount: '', empowermentInterest: '',
     password: '', confirmPassword: '',
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (step === 3 && form.membershipType === 'organisation' && organisations.length === 0) {
+      fetchHierarchyOrganisations().then(setOrganisations).catch(console.error);
+    }
+  }, [step, form.membershipType, organisations.length]);
+
+  useEffect(() => {
+    if (form.organisationId && form.membershipType === 'organisation') {
+      fetchHierarchySubOrgs(Number(form.organisationId)).then(setSubOrgs).catch(console.error);
+    } else {
+      setSubOrgs([]);
+    }
+  }, [form.organisationId, form.membershipType]);
+
+  useEffect(() => {
+    if (form.subOrgId && form.membershipType === 'organisation') {
+      fetchHierarchyGroups(Number(form.subOrgId)).then(setGroups).catch(console.error);
+    } else {
+      setGroups([]);
+    }
+  }, [form.subOrgId, form.membershipType]);
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -57,159 +94,394 @@ export default function MemberRegistrationPage() {
       const payload = {
         ...form,
         role: 'MEMBER',
-        organisationCode: form.membershipType === 'organisation' ? form.organisationId : 'APEX-0001',
-        organisationId: form.membershipType === 'individual' ? 1 : undefined,
+        organisationCode: 'APEX-0001', // Automatically resolved correctly if direct member
+        organisationId: form.membershipType === 'individual' ? 1 : Number(form.organisationId) || undefined,
+        subOrgId: form.subOrgId ? Number(form.subOrgId) : undefined,
+        groupId: form.groupId ? Number(form.groupId) : undefined,
         proposedSavingsAmount: Number(form.proposedSavingsAmount) || 0,
       };
+      
       await registerMember(payload);
       setDone(true);
     } catch (err: any) {
       const msg = err?.response?.data?.message;
-      setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Registration failed. Please try again.'));
+      setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Registration failed. Please verify your connection.'));
     } finally {
       setLoading(false);
     }
   };
 
+  if (!mounted) return null;
+
   if (done) {
     return (
-      <div className={styles.page}>
-        <div className={styles.successCard}>
-          <div className={styles.successIcon}><CheckCircle size={48} color="var(--primary)" /></div>
-          <h2 className={styles.successTitle}>Registration Submitted!</h2>
-          <p className={styles.successText}>Your membership application has been received and is currently in the multi-level approval queue. You'll receive an email notification once verified.</p>
-          <Link href="/login" className="btn btn-primary">Login to Explorer</Link>
-        </div>
+      <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#005c41)] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/95 backdrop-blur-xl border border-white/20 p-10 lg:p-14 rounded-[3rem] shadow-2xl max-w-lg w-full text-center"
+        >
+          <div className="w-20 h-20 bg-emerald-100 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={40} className="text-emerald-500" />
+          </div>
+          <h2 className="text-3xl font-black text-slate-800 mb-4">You're In!</h2>
+          <p className="text-lg text-slate-600 mb-8 font-medium leading-relaxed">
+            Your membership application has been successfully submitted to the National Apex Cooperative. Please check your email for the next steps.
+          </p>
+          <Link href="/login" className="inline-flex items-center justify-center w-full py-4 bg-[#008A62] text-white rounded-2xl font-bold shadow-lg shadow-emerald-600/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-600/40 transition-all">
+            Proceed to Login Dashboard
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.logoBox}><img src="/logo.png" alt="NOGALSS Logo" width={56} height={56} style={{ objectFit: 'contain' }} /><div className={styles.logoTitle}>Member Onboarding</div></div>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem' }}>Apex Digital Cooperative Portal</p>
+    <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#004c35)] relative flex flex-col items-center pt-24 pb-12 px-4 selection:bg-emerald-500/30">
+      {/* Decorative Lights */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00DDA3] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#008A62] rounded-full blur-[150px] opacity-40 pointer-events-none" />
+
+      <div className="w-full max-w-3xl relative z-10 flex flex-col items-center">
+        {/* Header */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-4 relative z-10">
+            <ShieldCheck size={32} className="text-[#008A62]" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-white text-center tracking-tight">Become a Member</h1>
+          <p className="text-emerald-100/80 font-medium mt-2">NOGALSS Cooperative Ecosystem</p>
         </div>
 
-        <div className={styles.stepsBar}>
-          {steps.map((s) => (
-            <div key={s.id} className={`${styles.stepItem} ${step === s.id ? styles.stepActive : ''} ${step > s.id ? styles.stepDone : ''}`}>
-              <div className={styles.stepCircle}>{step > s.id ? <CheckCircle size={14} /> : <s.icon size={14} />}</div>
-              <span className={styles.stepLabel}>{s.title}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.formCard}>
-          {error && <div className={styles.errorBox}>{error}</div>}
-
-          {step === 1 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Personal Details</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">First Name *</label><input className="form-control" value={form.firstName} onChange={e => update('firstName', e.target.value)} required /></div>
-                <div className="form-group"><label className="form-label">Last Name *</label><input className="form-control" value={form.lastName} onChange={e => update('lastName', e.target.value)} required /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">Date of Birth</label><input type="date" className="form-control" value={form.dateOfBirth} onChange={e => update('dateOfBirth', e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">Gender</label><select className="form-control" value={form.gender} onChange={e => update('gender', e.target.value)}><option value="">Select</option><option>Male</option><option>Female</option></select></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">Marital Status</label><select className="form-control" value={form.maritalStatus} onChange={e => update('maritalStatus', e.target.value)}><option value="">Select</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select></div>
-                <div className="form-group"><label className="form-label">Occupation</label><input className="form-control" value={form.occupation} onChange={e => update('occupation', e.target.value)} /></div>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Contact & Residency</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">Email Address *</label><input className="form-control" value={form.email} onChange={e => update('email', e.target.value)} required /></div>
-                <div className="form-group"><label className="form-label">Phone Number *</label><input className="form-control" value={form.phone} onChange={e => update('phone', e.target.value)} required /></div>
-              </div>
-              <div className="form-group"><label className="form-label">Residential Address</label><textarea className="form-control" value={form.address} onChange={e => update('address', e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">State of Residence</label><select className="form-control" value={form.state} onChange={e => update('state', e.target.value)}>{statesList.map(s => <option key={s}>{s}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">LGA</label><input className="form-control" value={form.lga} onChange={e => update('lga', e.target.value)} /></div>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Affiliation & Organization</h3>
-              <div className="form-group"><label className="form-label">Membership Route</label><select className="form-control" value={form.membershipType} onChange={e => update('membershipType', e.target.value)}><option value="individual">Direct Member (APEX)</option><option value="organisation">Via Partner Organization</option></select></div>
-              {form.membershipType === 'organisation' && (
-                <div className="form-group"><label className="form-label">Org Code / Ref</label><input className="form-control" value={form.organisationId} onChange={e => update('organisationId', e.target.value)} placeholder="e.g ORG-0001" /></div>
-              )}
-              <div className="border-t pt-4 mt-4">
-                <label className="text-sm font-bold text-gray-700">External Affiliation (Optional)</label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div className="form-group"><label className="form-label">External Org Name</label><input className="form-control" value={form.extOrgName} onChange={e => update('extOrgName', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">Position held</label><input className="form-control" value={form.extPosition} onChange={e => update('extPosition', e.target.value)} /></div>
+        {/* Stepper Wizard Bar */}
+        <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-4 mb-8 border border-white/10 shadow-inner flex items-center justify-between gap-2 scrollbar-none">
+          {steps.map((s, idx) => {
+            const isActive = step === s.id;
+            const isDone = step > s.id;
+            return (
+              <div key={s.id} className="flex flex-col items-center min-w-[70px] relative group">
+                <div 
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500
+                    ${isActive ? 'bg-white text-[#008A62] shadow-[0_0_20px_rgba(255,255,255,0.4)] scale-110' : ''}
+                    ${isDone ? 'bg-[#00DDA3] text-[#0A4226]' : ''}
+                    ${!isActive && !isDone ? 'bg-white/10 text-white/50' : ''}
+                  `}
+                >
+                  {isDone ? <CheckCircle2 size={18} strokeWidth={3} /> : <s.icon size={18} strokeWidth={isActive ? 2.5 : 2} />}
                 </div>
+                <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide transition-colors duration-300 ${isActive ? 'text-white' : 'text-emerald-100/50'}`}>
+                  {s.title}
+                </span>
               </div>
-            </div>
-          )}
+            );
+          })}
+        </div>
 
-          {step === 4 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Banking & KYC</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">Bank Name</label><input className="form-control" value={form.bankName} onChange={e => update('bankName', e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">Account Number</label><input className="form-control" value={form.accountNumber} onChange={e => update('accountNumber', e.target.value)} /></div>
-              </div>
-              <div className="form-group"><label className="form-label">Account Name</label><input className="form-control" value={form.accountName} onChange={e => update('accountName', e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-4 border-t pt-4">
-                <div className="form-group"><label className="form-label">BVN (Encrypted)</label><input className="form-control" value={form.bvn} onChange={e => update('bvn', e.target.value)} maxLength={11} /></div>
-                <div className="form-group"><label className="form-label">NIN (Encrypted)</label><input className="form-control" value={form.nin} onChange={e => update('nin', e.target.value)} maxLength={11} /></div>
-              </div>
-            </div>
-          )}
+        {/* Main Glass Form Container */}
+        <motion.div 
+          className="w-full bg-white/95 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-white"
+          layout
+        >
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0 }}
+                className="bg-rose-50 border border-rose-200 text-rose-600 px-6 py-4 rounded-2xl text-sm font-semibold mb-8 flex items-center gap-3"
+              >
+                <div className="w-2 h-2 bg-rose-500 rounded-full" />
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {step === 5 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Next of Kin</h3>
-              <div className="form-group"><label className="form-label">FullName</label><input className="form-control" value={form.nokName} onChange={e => update('nokName', e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group"><label className="form-label">Relationship</label><input className="form-control" value={form.nokRelationship} onChange={e => update('nokRelationship', e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">Phone</label><input className="form-control" value={form.nokPhone} onChange={e => update('nokPhone', e.target.value)} /></div>
-              </div>
-              <div className="form-group"><label className="form-label">Address</label><textarea className="form-control" value={form.nokAddress} onChange={e => update('nokAddress', e.target.value)} /></div>
-            </div>
-          )}
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="space-y-6"
+            >
+              <h3 className="text-2xl font-bold text-slate-800 mb-8 border-b border-slate-100 pb-4">
+                {steps.find(s => s.id === step)?.title} Information
+              </h3>
 
-          {step === 6 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Savings & Preferences</h3>
-              <div className="form-group"><label className="form-label">Savings Frequency</label><select className="form-control" value={form.savingsFrequency} onChange={e => update('savingsFrequency', e.target.value)}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
-              <div className="form-group"><label className="form-label">Proposed Savings Amount (NGN)</label><input type="number" className="form-control" value={form.proposedSavingsAmount} onChange={e => update('proposedSavingsAmount', e.target.value)} /></div>
-              <div className="form-group"><label className="form-label">Empowerment Interest</label><select className="form-control" value={form.empowermentInterest} onChange={e => update('empowermentInterest', e.target.value)}><option value="">Select Interest</option><option>SME Grant</option><option>Asset Finance</option><option>Education Loan</option><option>Agricultural Input</option></select></div>
-            </div>
-          )}
+              {/* STEP 1 */}
+              {step === 1 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">First Name <span className="text-rose-500">*</span></label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.firstName} onChange={e => update('firstName', e.target.value)} placeholder="Enter first name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Last Name <span className="text-rose-500">*</span></label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.lastName} onChange={e => update('lastName', e.target.value)} placeholder="Enter last name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Date of Birth</label>
+                    <input type="date" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.dateOfBirth} onChange={e => update('dateOfBirth', e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Gender</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.gender} onChange={e => update('gender', e.target.value)}>
+                      <option value="">Select Gender</option><option>Male</option><option>Female</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Marital Status</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.maritalStatus} onChange={e => update('maritalStatus', e.target.value)}>
+                      <option value="">Select Status</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Occupation</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.occupation} onChange={e => update('occupation', e.target.value)} placeholder="e.g. Trader, Farmer" />
+                  </div>
+                </div>
+              )}
 
-          {step === 7 && (
-            <div className="space-y-4">
-              <h3 className={styles.formTitle}>Security</h3>
-              <div className="form-group"><label className="form-label">Password *</label><input type="password" className="form-control" value={form.password} onChange={e => update('password', e.target.value)} required /></div>
-              <div className="form-group"><label className="form-label">Confirm Password *</label><input type="password" className="form-control" value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)} required /></div>
-            </div>
-          )}
+              {/* STEP 2 */}
+              {step === 2 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address <span className="text-rose-500">*</span></label>
+                    <input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.email} onChange={e => update('email', e.target.value)} placeholder="name@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone Number <span className="text-rose-500">*</span></label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+234 XXX XXXX" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Residential Address</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.address} onChange={e => update('address', e.target.value)} placeholder="Enter full address" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">State of Residence</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.state} onChange={e => update('state', e.target.value)}>
+                      <option value="">Select State</option>
+                      {statesList.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">LGA</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.lga} onChange={e => update('lga', e.target.value)} placeholder="Enter LGA" />
+                  </div>
+                </div>
+              )}
 
-          <div className={styles.navBtns}>
-            {step > 1 && <button className="btn btn-outline-dark" onClick={() => setStep(s => s - 1)}><ChevronLeft size={16} /> Back</button>}
-            <div className="flex-1" />
+              {/* STEP 3 - HIERARCHY AFFILIATION */}
+              {step === 3 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Membership Tier</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.membershipType} onChange={e => update('membershipType', e.target.value)}>
+                      <option value="individual">Direct NOGALSS Member</option>
+                      <option value="organisation">Via Affiliated Organization</option>
+                    </select>
+                  </div>
+
+                  <AnimatePresence>
+                    {form.membershipType === 'organisation' && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: 'auto' }} 
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-6 border-t border-slate-100 pt-6 mt-6"
+                      >
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-[#008A62]">Parent Organization</label>
+                            <div className="relative">
+                              <select 
+                                className="w-full px-4 py-3 bg-emerald-50/50 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none bg-no-repeat" 
+                                value={form.organisationId} 
+                                onChange={e => {
+                                  update('organisationId', e.target.value);
+                                  update('subOrgId', '');
+                                  update('groupId', '');
+                                }}
+                              >
+                                <option value="">Select an Organization...</option>
+                                {organisations.map(o => <option key={o.id} value={o.id}>{o.name} ({o.code})</option>)}
+                              </select>
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600/50 pointer-events-none" size={16} />
+                            </div>
+                            <p className="text-[10px] text-emerald-600/70 py-1">Required if joining via a partner organization.</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-blue-600">Sub-Organization (Optional)</label>
+                            <div className="relative">
+                              <select 
+                                className="w-full px-4 py-3 bg-blue-50/50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 outline-none transition-all font-medium text-slate-800 appearance-none disabled:opacity-50" 
+                                value={form.subOrgId} 
+                                onChange={e => {
+                                  update('subOrgId', e.target.value);
+                                  update('groupId', '');
+                                }}
+                                disabled={!form.organisationId || subOrgs.length === 0}
+                              >
+                                <option value="">{subOrgs.length > 0 ? 'Select Sub-Organization...' : 'No Sub-Orgs available'}</option>
+                                {subOrgs.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+                              </select>
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600/50 pointer-events-none" size={16} />
+                            </div>
+                            <p className="text-[10px] text-blue-600/70 py-1">Enter if drilling down into a state or branch chapter.</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-amber-600">Group / Unit (Optional)</label>
+                            <div className="relative">
+                              <select 
+                                className="w-full px-4 py-3 bg-amber-50/50 border border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-600/30 focus:border-amber-600 outline-none transition-all font-medium text-slate-800 appearance-none disabled:opacity-50" 
+                                value={form.groupId} 
+                                onChange={e => update('groupId', e.target.value)}
+                                disabled={!form.subOrgId || groups.length === 0}
+                              >
+                                <option value="">{groups.length > 0 ? 'Select Group / Unit...' : 'No Groups available'}</option>
+                                {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                              </select>
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-600/50 pointer-events-none" size={16} />
+                            </div>
+                            <p className="text-[10px] text-amber-600/70 py-1">Enter if drilling down to the specific local unit level.</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Removed External Leadership Roles Block */}
+                </div>
+              )}
+
+              {/* STEP 4 */}
+              {step === 4 && (
+                <div className="space-y-6">
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-4 flex items-start gap-4">
+                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                      <Lock size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">Secure Data Encryption</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed mt-1">Your sensitive financial information (BVN) is encrypted immediately upon entry. We use bank-grade AES-256 encryption to protect your identity.</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Bank Name</label>
+                      <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.bankName} onChange={e => update('bankName', e.target.value)} placeholder="Enter Bank Name" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Number</label>
+                      <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.accountNumber} onChange={e => update('accountNumber', e.target.value)} placeholder="10-digit number" maxLength={10} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Name</label>
+                      <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.accountName} onChange={e => update('accountName', e.target.value)} placeholder="Exact name on account" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">Bank Verification Number (BVN) <Lock size={12} className="text-emerald-500"/></label>
+                      <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.bvn} onChange={e => update('bvn', e.target.value)} placeholder="11-digit BVN" maxLength={11} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5 */}
+              {step === 5 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Next of Kin Full Name</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.nokName} onChange={e => update('nokName', e.target.value)} placeholder="Enter full name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Relationship</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.nokRelationship} onChange={e => update('nokRelationship', e.target.value)} placeholder="e.g. Spouse, Sibling" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.nokPhone} onChange={e => update('nokPhone', e.target.value)} placeholder="Phone number" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Address</label>
+                    <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.nokAddress} onChange={e => update('nokAddress', e.target.value)} placeholder="Enter full address" />
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 6 */}
+              {step === 6 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Savings Frequency</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.savingsFrequency} onChange={e => update('savingsFrequency', e.target.value)}>
+                      <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Proposed Amount (NGN)</label>
+                    <input type="number" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.proposedSavingsAmount} onChange={e => update('proposedSavingsAmount', e.target.value)} placeholder="Enter amount" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Empowerment Interest</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.empowermentInterest} onChange={e => update('empowermentInterest', e.target.value)}>
+                      <option value="">Select Primary Interest Area</option>
+                      <option>SME Grant & Financing</option>
+                      <option>Asset & Equipment Finance</option>
+                      <option>Education & Skills Training</option>
+                      <option>Agricultural Inputs / Fertilizer</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 7 */}
+              {step === 7 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Password <span className="text-rose-500">*</span></label>
+                    <input type="password" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.password} onChange={e => update('password', e.target.value)} placeholder="Min 8 characters" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Confirm Password <span className="text-rose-500">*</span></label>
+                    <input type="password" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)} placeholder="Min 8 characters" required />
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between mt-10 pt-6 border-t border-slate-100">
+            {step > 1 ? (
+              <button 
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                onClick={() => setStep(s => s - 1)}
+              >
+                <ChevronLeft size={18} /> Back
+              </button>
+            ) : <div />}
+
             {step < 7 ? (
-              <button className="btn btn-primary" onClick={() => setStep(s => s + 1)}>Next <ChevronRight size={16} /></button>
+              <button 
+                className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-[#008A62] hover:bg-[#007A57] shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                onClick={() => setStep(s => s + 1)}
+              >
+                Next <ChevronRight size={18} />
+              </button>
             ) : (
-              <button className="btn btn-secondary" onClick={handleSubmit} disabled={loading}>
-                {loading ? 'Processing...' : 'Complete Onboarding'}
+              <button 
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${loading ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-900 hover:bg-black shadow-slate-900/30 hover:-translate-y-0.5 active:translate-y-0'}`}
+                onClick={handleSubmit} 
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : 'Complete Secure Registration'}
               </button>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
