@@ -4,12 +4,80 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle2, ChevronRight, ChevronLeft, User, Phone, 
-  Building2, ShieldCheck, Lock, Activity, Landmark, HeartHandshake, Shield, ChevronDown
+  Building2, ShieldCheck, Lock, Activity, Landmark, HeartHandshake, Shield, ChevronDown, Search
 } from 'lucide-react';
 import { 
   registerMember, fetchHierarchyOrganisations, 
-  fetchHierarchySubOrgs, fetchHierarchyGroups 
+  fetchHierarchySubOrgs, fetchHierarchyGroups, fetchBanks, initiateRegistrationPayment 
 } from '@/lib/api';
+
+const SearchableSelect = ({ label, value, options, onChange, placeholder }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useState<any>(null)[0]; // Simplified for local use
+
+  const filtered = options.filter((o: any) => 
+    o.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-2 relative">
+      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</label>
+      <div 
+        className={`w-full px-4 py-3 bg-slate-50 border ${isOpen ? 'border-[#008A62] ring-2 ring-[#008A62]/20' : 'border-slate-200'} rounded-xl cursor-pointer transition-all flex items-center justify-between group`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={`font-medium ${value ? 'text-slate-800' : 'text-slate-400'}`}>
+          {value || placeholder}
+        </span>
+        <ChevronDown size={18} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute left-0 right-0 top-[calc(100%+8px)] bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 max-h-[300px] flex flex-col overflow-hidden"
+          >
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <input 
+                autoFocus
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-lg outline-none text-sm focus:border-[#008A62]/30 transition-all"
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onClick={e => e.stopPropagation()}
+              />
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar">
+              {filtered.length > 0 ? (
+                filtered.map((opt: any) => (
+                  <div 
+                    key={opt.code || opt.id}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${value === opt.name ? 'bg-[#008A62] text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-[#008A62]'}`}
+                    onClick={() => {
+                      onChange(opt.name);
+                      setIsOpen(false);
+                      setSearch('');
+                    }}
+                  >
+                    {opt.name}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-slate-400 text-xs">No matching results</div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </div>
+  );
+};
+
 
 const steps = [
   { id: 1, title: 'Personal', icon: User },
@@ -17,8 +85,7 @@ const steps = [
   { id: 3, title: 'Affiliation', icon: Building2 },
   { id: 4, title: 'Banking', icon: Landmark },
   { id: 5, title: 'Next of Kin', icon: HeartHandshake },
-  { id: 6, title: 'Savings', icon: Activity },
-  { id: 7, title: 'Security', icon: Lock },
+  { id: 6, title: 'Payment', icon: Lock },
 ];
 
 export default function MemberRegistrationPage() {
@@ -26,11 +93,14 @@ export default function MemberRegistrationPage() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [memberData, setMemberData] = useState<any>(null);
   
   const [organisations, setOrganisations] = useState<any[]>([]);
   const [subOrgs, setSubOrgs] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
+  const [bankList, setBankList] = useState<any[]>([]);
   
   const [form, setForm] = useState({
     firstName: '', lastName: '', dateOfBirth: '', gender: '', maritalStatus: '',
@@ -69,6 +139,15 @@ export default function MemberRegistrationPage() {
     }
   }, [form.subOrgId, form.membershipType]);
 
+  useEffect(() => {
+    if (step === 4 && bankList.length === 0) {
+      fetchBanks().then(res => {
+        if (res.status === 'success') setBankList(res.data);
+        else setBankList(res); // Handle both formats
+      }).catch(console.error);
+    }
+  }, [step, bankList.length]);
+
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
   const statesList = ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'];
@@ -88,26 +167,45 @@ export default function MemberRegistrationPage() {
        return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
     setError('');
     try {
       const payload = {
         ...form,
         role: 'MEMBER',
-        organisationCode: 'APEX-0001', // Automatically resolved correctly if direct member
+        organisationCode: 'APEX-0001',
         organisationId: form.membershipType === 'individual' ? 1 : Number(form.organisationId) || undefined,
         subOrgId: form.subOrgId ? Number(form.subOrgId) : undefined,
         groupId: form.groupId ? Number(form.groupId) : undefined,
         proposedSavingsAmount: Number(form.proposedSavingsAmount) || 0,
       };
       
-      await registerMember(payload);
-      setDone(true);
+      const res = await registerMember(payload);
+      if (res.status === 'success') {
+        localStorage.setItem('access_token', res.data.access_token);
+        localStorage.setItem('refresh_token', res.data.refresh_token);
+        setMemberData(res.data);
+        setStep(6);
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message;
       setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Registration failed. Please verify your connection.'));
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaystack = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await initiateRegistrationPayment();
+      if (res.status === 'success' && res.data.authorization_url) {
+        window.location.href = res.data.authorization_url;
+      }
+    } catch (err: any) {
+      alert('Error initializing payment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -138,12 +236,10 @@ export default function MemberRegistrationPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#004c35)] relative flex flex-col items-center pt-24 pb-12 px-4 selection:bg-emerald-500/30">
-      {/* Decorative Lights */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00DDA3] rounded-full blur-[150px] opacity-20 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#008A62] rounded-full blur-[150px] opacity-40 pointer-events-none" />
 
       <div className="w-full max-w-3xl relative z-10 flex flex-col items-center">
-        {/* Header */}
         <div className="flex flex-col items-center mb-10">
           <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-4 relative z-10">
             <ShieldCheck size={32} className="text-[#008A62]" />
@@ -152,7 +248,6 @@ export default function MemberRegistrationPage() {
           <p className="text-emerald-100/80 font-medium mt-2">NOGALSS Cooperative Ecosystem</p>
         </div>
 
-        {/* Stepper Wizard Bar */}
         <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-4 mb-8 border border-white/10 shadow-inner flex items-center justify-between gap-2 scrollbar-none">
           {steps.map((s, idx) => {
             const isActive = step === s.id;
@@ -176,7 +271,6 @@ export default function MemberRegistrationPage() {
           })}
         </div>
 
-        {/* Main Glass Form Container */}
         <motion.div 
           className="w-full bg-white/95 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-white"
           layout
@@ -208,7 +302,6 @@ export default function MemberRegistrationPage() {
                 {steps.find(s => s.id === step)?.title} Information
               </h3>
 
-              {/* STEP 1 */}
               {step === 1 && (
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -242,7 +335,6 @@ export default function MemberRegistrationPage() {
                 </div>
               )}
 
-              {/* STEP 2 */}
               {step === 2 && (
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -271,7 +363,6 @@ export default function MemberRegistrationPage() {
                 </div>
               )}
 
-              {/* STEP 3 - HIERARCHY AFFILIATION */}
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
@@ -308,7 +399,6 @@ export default function MemberRegistrationPage() {
                               </select>
                               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600/50 pointer-events-none" size={16} />
                             </div>
-                            <p className="text-[10px] text-emerald-600/70 py-1">Required if joining via a partner organization.</p>
                           </div>
                           
                           <div className="space-y-2">
@@ -328,7 +418,6 @@ export default function MemberRegistrationPage() {
                               </select>
                               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600/50 pointer-events-none" size={16} />
                             </div>
-                            <p className="text-[10px] text-blue-600/70 py-1">Enter if drilling down into a state or branch chapter.</p>
                           </div>
                           
                           <div className="space-y-2">
@@ -345,34 +434,24 @@ export default function MemberRegistrationPage() {
                               </select>
                               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-600/50 pointer-events-none" size={16} />
                             </div>
-                            <p className="text-[10px] text-amber-600/70 py-1">Enter if drilling down to the specific local unit level.</p>
                           </div>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Removed External Leadership Roles Block */}
                 </div>
               )}
 
-              {/* STEP 4 */}
               {step === 4 && (
                 <div className="space-y-6">
-                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-4 flex items-start gap-4">
-                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                      <Lock size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm">Secure Data Encryption</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed mt-1">Your sensitive financial information (BVN) is encrypted immediately upon entry. We use bank-grade AES-256 encryption to protect your identity.</p>
-                    </div>
-                  </div>
                   <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Bank Name</label>
-                      <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.bankName} onChange={e => update('bankName', e.target.value)} placeholder="Enter Bank Name" />
-                    </div>
+                    <SearchableSelect 
+                      label="Bank Name"
+                      value={form.bankName}
+                      options={bankList}
+                      placeholder="Select Bank..."
+                      onChange={(val: string) => update('bankName', val)}
+                    />
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Number</label>
                       <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.accountNumber} onChange={e => update('accountNumber', e.target.value)} placeholder="10-digit number" maxLength={10} />
@@ -389,7 +468,6 @@ export default function MemberRegistrationPage() {
                 </div>
               )}
 
-              {/* STEP 5 */}
               {step === 5 && (
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
@@ -408,38 +486,6 @@ export default function MemberRegistrationPage() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Address</label>
                     <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.nokAddress} onChange={e => update('nokAddress', e.target.value)} placeholder="Enter full address" />
                   </div>
-                </div>
-              )}
-
-              {/* STEP 6 */}
-              {step === 6 && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Savings Frequency</label>
-                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.savingsFrequency} onChange={e => update('savingsFrequency', e.target.value)}>
-                      <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Proposed Amount (NGN)</label>
-                    <input type="number" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.proposedSavingsAmount} onChange={e => update('proposedSavingsAmount', e.target.value)} placeholder="Enter amount" />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Empowerment Interest</label>
-                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 appearance-none" value={form.empowermentInterest} onChange={e => update('empowermentInterest', e.target.value)}>
-                      <option value="">Select Primary Interest Area</option>
-                      <option>SME Grant & Financing</option>
-                      <option>Asset & Equipment Finance</option>
-                      <option>Education & Skills Training</option>
-                      <option>Agricultural Inputs / Fertilizer</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 7 */}
-              {step === 7 && (
-                <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Password <span className="text-rose-500">*</span></label>
                     <input type="password" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#008A62]/30 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800" value={form.password} onChange={e => update('password', e.target.value)} placeholder="Min 8 characters" required />
@@ -450,12 +496,43 @@ export default function MemberRegistrationPage() {
                   </div>
                 </div>
               )}
+
+              {step === 6 && (
+                <div className="space-y-8 py-4">
+                  <div className="text-center space-y-2">
+                    <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Lock size={32} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-800">Final Step: Registration Fee</h3>
+                    <p className="text-slate-500">To complete your membership, please pay the one-time registration fee.</p>
+                    <div className="inline-block px-6 py-3 bg-[#008A62]/10 rounded-2xl mt-4">
+                      <span className="text-3xl font-black text-[#008A62]">₦5,250.00</span>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <button 
+                      onClick={handlePaystack}
+                      disabled={isSubmitting}
+                      className="w-full p-6 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#008A62] hover:shadow-lg transition-all group overflow-hidden relative"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">PS</div>
+                        <div className="text-left">
+                          <h4 className="font-bold text-slate-800 group-hover:text-[#008A62]">Pay with Paystack</h4>
+                          <p className="text-xs text-slate-500">Fast, secure automated checkout (Cards, USSD, Transfer)</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="text-slate-300 group-hover:text-[#008A62] group-hover:translate-x-1 transition-all" size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation Buttons */}
           <div className="flex items-center justify-between mt-10 pt-6 border-t border-slate-100">
-            {step > 1 ? (
+            {step > 1 && step < 6 ? (
               <button 
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 onClick={() => setStep(s => s - 1)}
@@ -464,21 +541,25 @@ export default function MemberRegistrationPage() {
               </button>
             ) : <div />}
 
-            {step < 7 ? (
+            {step < 5 ? (
               <button 
                 className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-[#008A62] hover:bg-[#007A57] shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:translate-y-0"
                 onClick={() => setStep(s => s + 1)}
               >
                 Next <ChevronRight size={18} />
               </button>
-            ) : (
+            ) : step === 5 ? (
               <button 
-                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${loading ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-900 hover:bg-black shadow-slate-900/30 hover:-translate-y-0.5 active:translate-y-0'}`}
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${isSubmitting ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-900 hover:bg-black shadow-slate-900/30 hover:-translate-y-0.5 active:translate-y-0'}`}
                 onClick={handleSubmit} 
-                disabled={loading}
+                disabled={isSubmitting}
               >
-                {loading ? 'Processing...' : 'Complete Secure Registration'}
+                {isSubmitting ? 'Processing...' : 'Complete Secure Registration'}
               </button>
+            ) : (
+              <div className="flex items-center gap-2 text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#008A62]">Secure Payment Gateway Active</span>
+              </div>
             )}
           </div>
         </motion.div>

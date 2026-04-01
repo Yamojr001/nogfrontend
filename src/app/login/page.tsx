@@ -1,18 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import { authLogin, authGoogleLogin, getRoleFromToken } from '@/lib/api';
-import { GoogleLogin } from '@react-oauth/google';
-import styles from './page.module.css';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Eye, EyeOff, LogIn, Mail, Lock, ArrowRight, 
+  ShieldCheck, CheckCircle2, AlertCircle, Loader2
+} from 'lucide-react';
+import { authLogin, getRoleFromToken } from '@/lib/api';
 
 const roles = [
-  { value: 'APEX_SUPER_ADMIN', label: 'Apex Admin', redirect: '/admin' },
-  { value: 'PARTNER_ORG_ADMIN', label: 'Partner Organisation Admin', redirect: '/admin/partner' },
-  { value: 'SUB_ORG_ADMIN', label: 'Sub Organisation Admin', redirect: '/sub-org' },
-  { value: 'GROUP_ADMIN', label: 'Group Admin', redirect: '/group' },
-  { value: 'MEMBER', label: 'Individual Member', redirect: '/member' },
+  { value: 'APEX_SUPER_ADMIN', label: 'Apex Admin' },
+  { value: 'PARTNER_ORG_ADMIN', label: 'Partner Admin' },
+  { value: 'MEMBER', label: 'Member' },
 ];
 
 export default function LoginPage() {
@@ -27,43 +27,37 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
     try {
       const data = await authLogin(email, password);
+      
       if (typeof window !== 'undefined') {
         localStorage.setItem('access_token', data.access_token);
-        if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
         
-        // Sync to cookie for Next.js Middleware
+        // Sync to cookie for Middleware
         document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
         
-        // Decode role from JWT payload immediately to store
         try {
           const payload = JSON.parse(atob(data.access_token.split('.')[1]));
           if (payload.role) {
             localStorage.setItem('user_role', payload.role);
             document.cookie = `user_role=${payload.role}; path=/; max-age=86400; SameSite=Lax`;
           }
-          if (payload.organisationId) {
-            localStorage.setItem('organisation_id', payload.organisationId.toString());
-          }
         } catch (e) { console.error('Token decoding failed', e); }
       }
-      // Decode role from JWT payload
+
       const role = getRoleFromToken();
       const roleMap: Record<string, string> = {
         super_admin: '/dashboard',
         finance_admin: '/dashboard',
         auditor: '/dashboard',
         partner_admin: '/partner',
-        partner_officer: '/partner',
         sub_org_admin: '/sub-org',
-        sub_org_officer: '/sub-org',
         group_admin: '/group',
-        group_treasurer: '/group',
-        group_secretary: '/group',
         member: '/member',
-        support_agent: '/member',
       };
+      
       router.push(roleMap[role || ''] || '/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Invalid email or password. Please try again.');
@@ -72,133 +66,122 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await authGoogleLogin(credentialResponse.credential);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', data.access_token);
-        if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
-        document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
-        
-        try {
-          const payload = JSON.parse(atob(data.access_token.split('.')[1]));
-          if (payload.role) {
-            localStorage.setItem('user_role', payload.role);
-            document.cookie = `user_role=${payload.role}; path=/; max-age=86400; SameSite=Lax`;
-          }
-          if (payload.organisationId) {
-            localStorage.setItem('organisation_id', payload.organisationId.toString());
-          }
-        } catch (e) { console.error('Token decoding failed', e); }
-      }
-      const role = getRoleFromToken();
-      const roleMap: Record<string, string> = {
-        super_admin: '/dashboard',
-        finance_admin: '/dashboard',
-        auditor: '/dashboard',
-        partner_admin: '/partner',
-        partner_officer: '/partner',
-        sub_org_admin: '/sub-org',
-        sub_org_officer: '/sub-org',
-        group_admin: '/group',
-        group_treasurer: '/group',
-        group_secretary: '/group',
-        member: '/member',
-        support_agent: '/member',
-      };
-      router.push(roleMap[role || ''] || '/dashboard');
-    } catch (err: any) {
-      setError('Google Sign-In failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.logoBox}>
-          <img src="/logo.png" alt="NOGALSS Logo" width={64} height={64} style={{ objectFit: 'contain' }} />
-          <div>
-            <div className={styles.logoTitle}>NOGALSS</div>
-            <div className={styles.logoSub}>Member Portal</div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#004c35)] relative flex items-center justify-center p-6 overflow-hidden selection:bg-emerald-500/30">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00DDA3] rounded-full blur-[150px] opacity-20 pointer-events-none animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#008A62] rounded-full blur-[150px] opacity-40 pointer-events-none" />
 
-        <h1 className={styles.title}>Welcome Back</h1>
-        <p className={styles.subtitle}>Sign in to your cooperative account</p>
-
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input type="email" className="form-control" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPw ? 'text' : 'password'}
-                className="form-control"
-                placeholder="Your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{ paddingRight: '48px' }}
-              />
-              <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <div className="bg-white/95 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl p-10 border border-white flex flex-col items-center">
+          {/* Logo Section */}
+          <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 relative group overflow-hidden">
+            <ShieldCheck size={40} className="text-[#008A62] relative z-10" />
+            <div className="absolute inset-0 bg-[#008A62]/5 group-hover:scale-110 transition-transform duration-500" />
           </div>
 
-          {error && (
-            <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', color: '#c53030', fontSize: '0.875rem' }}>
-              {error}
-            </div>
-          )}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Welcome Back</h1>
+            <p className="text-slate-500 font-medium mt-1">NOGALSS Cooperative Portal</p>
+          </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginBottom: '16px' }} disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'} <LogIn size={16} />
-          </button>
-
-          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#94a3b8' }}>
-                <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
-                <span style={{ padding: '0 12px', fontSize: '0.8rem', fontWeight: 600 }}>OR</span>
-                <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError('Google Sign-In failed')}
-                  useOneTap
-                  theme="outline"
-                  shape="pill"
-                  text="continue_with"
+          <form onSubmit={handleLogin} className="w-full space-y-5">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-[#008A62] ml-1">Email Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#008A62] transition-colors" size={18} />
+                <input 
+                  type="email" 
+                  className="w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#008A62]/10 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400" 
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
                 />
               </div>
-            </>
-          )}
-        </form>
+            </div>
 
-        <div className={styles.roleInfo}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: '600', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Portal supports:</p>
-          <div className={styles.rolesList}>
-            {roles.map((r) => (
-              <span key={r.value} style={{ fontSize: '0.75rem', background: 'var(--primary-soft)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '99px', fontWeight: '600' }}>{r.label}</span>
-            ))}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-[#008A62]">Password</label>
+                <Link href="/forgot-password" title="Forgot Password?" className="text-[10px] font-bold text-slate-400 hover:text-[#008A62] transition-colors">Forgot Password?</Link>
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#008A62] transition-colors" size={18} />
+                <input 
+                  type={showPw ? 'text' : 'password'} 
+                  className="w-full pl-12 pr-12 py-4 bg-slate-100/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#008A62]/10 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400" 
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-rose-50 border border-rose-100 rounded-xl p-3 flex items-center gap-3 text-rose-600 text-xs font-semibold"
+                >
+                  <AlertCircle size={16} />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-900/20 hover:bg-black hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400 disabled:shadow-none"
+            >
+              {loading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <>
+                  <span>Sign In to Account</span>
+                  <ArrowRight size={20} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-10 pt-8 border-t border-slate-100 w-full text-center space-y-4">
+            <p className="text-slate-500 text-sm font-medium">
+              Don't have an account?{' '}
+              <Link href="/register/member" className="text-[#008A62] font-black hover:underline underline-offset-4">Join NOGALSS</Link>
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 px-4">
+              {roles.map((r) => (
+                <span key={r.value} className="text-[9px] font-black uppercase tracking-tighter bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full whitespace-nowrap">
+                  {r.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className={styles.links}>
-          <p>Not a member yet? <Link href="/register/member" style={{ color: 'var(--primary)', fontWeight: '600' }}>Register here</Link></p>
-          <p>Register organisation? <Link href="/register/partner" style={{ color: 'var(--secondary)', fontWeight: '600' }}>Click here</Link></p>
+        {/* Footer info */}
+        <div className="mt-8 flex items-center justify-center gap-8 opacity-60">
+          <p className="text-[10px] font-bold text-white uppercase tracking-widest">Secure 256-bit SSL</p>
+          <p className="text-[10px] font-bold text-white uppercase tracking-widest">© 2026 NOGALSS Ecosystem</p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
+

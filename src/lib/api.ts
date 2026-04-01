@@ -4,7 +4,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://nogbackend.vercel.a
 
 const api = axios.create({
   baseURL: `${API_BASE}/api`,
-  timeout: 10000,
+  timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -110,6 +110,16 @@ export async function fetchHierarchySubOrgs(orgId: number) {
 
 export async function fetchHierarchyGroups(subOrgId: number) {
   const { data } = await api.get(`/auth/hierarchy/sub-orgs/${subOrgId}/groups`);
+  return data;
+}
+
+export async function fetchBanks() {
+  const { data } = await api.get('/banks');
+  return data;
+}
+
+export async function initiateRegistrationPayment() {
+  const { data } = await api.post('/auth/register/initialize-payment');
   return data;
 }
 
