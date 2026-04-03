@@ -38,6 +38,10 @@ export default function LoginPage() {
         // Sync to cookie for Middleware
         document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
         
+        // Store payment status
+        localStorage.setItem('is_registration_fee_paid', String(data.isRegistrationFeePaid));
+        document.cookie = `is_registration_fee_paid=${data.isRegistrationFeePaid}; path=/; max-age=86400; SameSite=Lax`;
+
         try {
           const payload = JSON.parse(atob(data.access_token.split('.')[1]));
           if (payload.role) {
@@ -48,6 +52,12 @@ export default function LoginPage() {
       }
 
       const role = getRoleFromToken();
+      
+      // Check payment status for members
+      if (role === 'member' && data.isRegistrationFeePaid === false) {
+        router.push('/member/payment');
+        return;
+      }
       const roleMap: Record<string, string> = {
         super_admin: '/dashboard',
         finance_admin: '/dashboard',

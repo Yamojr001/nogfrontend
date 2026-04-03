@@ -14,6 +14,7 @@ import {
   Add as AddIcon,
   MoreVert as MoreIcon
 } from '@mui/icons-material';
+import OrganisationForm from '@/components/OrganisationForm';
 
 const orgData = [
   { id: 1, name: 'Federal Cooperative Partner', type: 'PARTNER', status: 'active', members: 1240, country: 'Nigeria', joined: '2024-01-15' },
@@ -207,43 +208,29 @@ export default function OrgsPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Register Dialog */}
-      <Dialog open={isRegistering} onClose={() => setIsRegistering(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, minWidth: 500 } }}>
-        <DialogTitle sx={{ fontWeight: 800 }}>🆕 Register Organisation</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid size={12}>
-              <TextField 
-                label="Organisation Name" 
-                fullWidth 
-                value={newOrg.name}
-                onChange={e => setNewOrg({...newOrg, name: e.target.value})}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} 
-              />
-            </Grid>
-            <Grid size={12}>
-              <TextField 
-                label="Type" 
-                select 
-                fullWidth 
-                value={newOrg.type}
-                onChange={e => setNewOrg({...newOrg, type: e.target.value})}
-                SelectProps={{ native: true }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} 
-              >
-                <option value="PARTNER">Partner</option>
-                <option value="SUB_ORG">Sub-Organisation</option>
-              </TextField>
-            </Grid>
-          </Grid>
+      <Dialog 
+        open={isRegistering} 
+        onClose={() => setIsRegistering(false)} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, px: 3, pt: 3 }}>🆕 Register Partner Organisation</DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          <Box sx={{ mt: 2 }}>
+            <OrganisationForm 
+              data={newOrg} 
+              onChange={setNewOrg} 
+            />
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={() => setIsRegistering(false)} sx={{ borderRadius: '10px', textTransform: 'none' }}>Cancel</Button>
+        <DialogActions sx={{ p: 3, gap: 1, borderTop: '1px solid #eef2f6' }}>
+          <Button onClick={() => setIsRegistering(false)} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3 }}>Cancel</Button>
           <Button 
             variant="contained" 
             onClick={handleRegister}
             disabled={!newOrg.name}
-            sx={{ bgcolor: '#004d40', borderRadius: '10px', textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: '#003d33' } }}
+            sx={{ bgcolor: '#004d40', borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 4, '&:hover': { bgcolor: '#003d33' } }}
           >
             Create Organisation
           </Button>

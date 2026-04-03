@@ -46,7 +46,7 @@ export default function ContributionsPage() {
         <Button
           variant="outlined"
           startIcon={<ExportIcon />}
-          onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/reports/members/export`, '_blank')}
+          onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://nogbackend.vercel.app'}/api/reports/members/export`, '_blank')}
           sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}
         >
           Export CSV

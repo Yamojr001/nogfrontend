@@ -30,11 +30,22 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    if (!token) router.push('/login');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    
     const storedRole = localStorage.getItem('user_role') || 'member';
+    const isPaid = localStorage.getItem('is_registration_fee_paid') === 'true';
+    
     setRole(storedRole);
     setUserName(localStorage.getItem('user_name') || 'Member');
-  }, [router]);
+
+    // Enforce payment for members
+    if (storedRole === 'member' && !isPaid && pathname !== '/member/payment') {
+      router.push('/member/payment');
+    }
+  }, [router, pathname]);
 
   const handleLogout = () => {
     localStorage.clear();

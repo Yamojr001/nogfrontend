@@ -13,6 +13,7 @@ import {
   Add as AddIcon,
   MoreVert as MoreIcon
 } from '@mui/icons-material';
+import OrganisationForm from '@/components/OrganisationForm';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
   active: 'success', suspended: 'error', pending: 'warning'
@@ -21,14 +22,21 @@ const statusColor: Record<string, 'success' | 'error' | 'warning' | 'default'> =
 export default function SubOrgsPage() {
   const [search, setSearch] = useState('');
   const [orgs, setOrgs] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [actionDialog, setActionDialog] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [newOrg, setNewOrg] = useState({ name: '', type: 'SUB_ORG' });
+  const [newOrg, setNewOrg] = useState<any>({ 
+    name: '', 
+    type: 'SUB_ORG',
+    parentId: '',
+    status: 'active'
+  });
 
   useEffect(() => {
     loadOrgs();
+    loadPartners();
   }, []);
 
   async function loadOrgs() {
@@ -44,11 +52,22 @@ export default function SubOrgsPage() {
     }
   }
 
+  async function loadPartners() {
+    try {
+      const data = await api.get('/organisations').then(res => res.data);
+      setPartners(data.filter((o: any) => o.type === 'PARTNER'));
+    } catch (e) {
+      console.error("Failed to load partners", e);
+    }
+  }
+
   const handleRegister = async () => {
     try {
+      if (!newOrg.name) return;
       await api.post('/organisations', newOrg);
       setIsRegistering(false);
       loadOrgs();
+      setNewOrg({ name: '', type: 'SUB_ORG', status: 'active', parentId: '' });
     } catch (e) {
       console.error("Failed to register sub-org", e);
     }

@@ -115,7 +115,7 @@ export async function fetchHierarchyGroups(subOrgId: number) {
 
 export async function fetchBanks() {
   const { data } = await api.get('/banks');
-  return data;
+  return data.data;
 }
 
 export async function initiateRegistrationPayment() {

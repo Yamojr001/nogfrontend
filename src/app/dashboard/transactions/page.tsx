@@ -12,7 +12,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nogbackend.vercel.app';
 
   useEffect(() => {
     loadTransactions();

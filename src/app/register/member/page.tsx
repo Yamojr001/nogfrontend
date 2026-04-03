@@ -155,6 +155,8 @@ export default function MemberRegistrationPage() {
   const validateForm = () => {
     if (!form.firstName || !form.lastName) return 'Full name is required';
     if (!form.email || !form.phone) return 'Email and phone are required';
+    if (!form.address || !form.state || !form.lga) return 'Residential address, State, and LGA are required';
+    if (form.membershipType === 'organisation' && !form.organisationId) return 'Please select your affiliated organization';
     if (form.password.length < 8) return 'Password must be at least 8 characters';
     if (form.password !== form.confirmPassword) return 'Passwords do not match';
     return null;
@@ -172,7 +174,7 @@ export default function MemberRegistrationPage() {
     try {
       const payload = {
         ...form,
-        role: 'MEMBER',
+        role: 'member',
         organisationCode: 'APEX-0001',
         organisationId: form.membershipType === 'individual' ? 1 : Number(form.organisationId) || undefined,
         subOrgId: form.subOrgId ? Number(form.subOrgId) : undefined,
@@ -181,15 +183,45 @@ export default function MemberRegistrationPage() {
       };
       
       const res = await registerMember(payload);
+      console.log('Registration response:', res);
+
       if (res.status === 'success') {
-        localStorage.setItem('access_token', res.data.access_token);
-        localStorage.setItem('refresh_token', res.data.refresh_token);
-        setMemberData(res.data);
-        setStep(6);
+        if (res.needsPayment && res.paymentUrl) {
+          console.log('Redirecting to payment:', res.paymentUrl);
+          window.location.href = res.paymentUrl;
+          return;
+        }
+
+        // Handle cases where payment is needed but URL is missing (fallback)
+        if (res.needsPayment && !res.paymentUrl) {
+           setError(res.message || 'Registration successful, but payment could not be initialized. Please login to pay.');
+           setDone(true);
+           return;
+        }
+
+        // Fallback for cases where tokens are returned (non-members)
+        if (res.data?.access_token) {
+          localStorage.setItem('access_token', res.data.access_token);
+          localStorage.setItem('refresh_token', res.data.refresh_token);
+          setMemberData(res.data);
+          setStep(6);
+        } else {
+          setDone(true);
+        }
+      } else {
+        // Handle unexpected status
+        setError('An unexpected response was received from the server. Please try again.');
+        console.error('Unexpected registration response status:', res.status);
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message;
-      setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Registration failed. Please verify your connection.'));
+      const finalMsg = Array.isArray(msg) ? msg.join(', ') : (msg || 'Registration failed. Please verify your connection.');
+      
+      if (finalMsg.includes('Registration saved but payment initialization failed')) {
+         setError(finalMsg + ' You can try to log in and pay from your dashboard.');
+      } else {
+         setError(finalMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -504,27 +536,30 @@ export default function MemberRegistrationPage() {
                       <Lock size={32} />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-800">Final Step: Registration Fee</h3>
-                    <p className="text-slate-500">To complete your membership, please pay the one-time registration fee.</p>
-                    <div className="inline-block px-6 py-3 bg-[#008A62]/10 rounded-2xl mt-4">
-                      <span className="text-3xl font-black text-[#008A62]">₦5,250.00</span>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4">
-                    <button 
-                      onClick={handlePaystack}
-                      disabled={isSubmitting}
-                      className="w-full p-6 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#008A62] hover:shadow-lg transition-all group overflow-hidden relative"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">PS</div>
-                        <div className="text-left">
-                          <h4 className="font-bold text-slate-800 group-hover:text-[#008A62]">Pay with Paystack</h4>
-                          <p className="text-xs text-slate-500">Fast, secure automated checkout (Cards, USSD, Transfer)</p>
-                        </div>
+                    <p className="text-slate-500">{isSubmitting ? 'Redirecting you to secure payment gateway...' : 'Automation redirection paused. Click below to proceed to payment.'}</p>
+                    <div className="flex flex-col items-center gap-4 mt-6">
+                      {isSubmitting ? (
+                        <div className="w-12 h-12 border-4 border-[#008A62]/20 border-t-[#008A62] rounded-full animate-spin" />
+                      ) : (
+                        <button 
+                          onClick={handlePaystack}
+                          className="w-full p-6 bg-white border-2 border-[#008A62] rounded-2xl flex items-center justify-between hover:shadow-lg transition-all group overflow-hidden relative"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-emerald-50 text-[#008A62] rounded-xl flex items-center justify-center font-bold">PS</div>
+                            <div className="text-left">
+                              <h4 className="font-bold text-[#008A62]">Pay with Paystack</h4>
+                              <p className="text-xs text-slate-500">Fast, secure automated checkout (Cards, USSD, Transfer)</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-[#008A62] group-hover:translate-x-1 transition-all" size={20} />
+                        </button>
+                      )}
+                      
+                      <div className="inline-block px-6 py-3 bg-[#008A62]/10 rounded-2xl">
+                        <span className="text-3xl font-black text-[#008A62]">₦5,250.00</span>
                       </div>
-                      <ChevronRight className="text-slate-300 group-hover:text-[#008A62] group-hover:translate-x-1 transition-all" size={20} />
-                    </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -554,7 +589,7 @@ export default function MemberRegistrationPage() {
                 onClick={handleSubmit} 
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Processing...' : 'Complete Secure Registration'}
+                {isSubmitting ? 'Processing...' : 'Pay & Complete Registration'}
               </button>
             ) : (
               <div className="flex items-center gap-2 text-slate-400">
