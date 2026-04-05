@@ -15,7 +15,6 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { NAVIGATION_CONFIG } from '@/lib/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TourProvider } from '@/components/TourProvider';
 
 const drawerWidth = 280;
 
@@ -165,7 +164,6 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 }, mt: '64px', width: '100%' }}>
-        <TourProvider>
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}
@@ -177,7 +175,6 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
               {children}
             </motion.div>
           </AnimatePresence>
-        </TourProvider>
       </Box>
 
       {/* Bottom Nav for Mobile */}

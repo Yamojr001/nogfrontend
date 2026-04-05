@@ -23,7 +23,16 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const role = localStorage.getItem('user_role');
       const token = localStorage.getItem('access_token');
+      const isPaid = localStorage.getItem('is_registration_fee_paid') === 'true';
+
       if (!role || !token) return;
+
+      // Show tour only for admins or paid members
+      const isAdminRole = ['super_admin', 'finance_admin', 'auditor', 'partner_admin', 'sub_org_admin', 'group_admin'].includes(role);
+      if (!isPaid && !isAdminRole) {
+        console.log('[Tour] Skipping tour: Registration fee not paid yet.');
+        return;
+      }
 
       const status = await fetchUserTourStatus('onboarding');
       if (status && !status.isCompleted) {

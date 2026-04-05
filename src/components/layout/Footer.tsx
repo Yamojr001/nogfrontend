@@ -1,4 +1,6 @@
+'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Youtube, Quote, Globe } from 'lucide-react';
 
 const footerLinks = {
@@ -26,6 +28,13 @@ const socials = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isAuthRoute = ['/dashboard', '/member', '/admin', '/partner', '/group', '/sub-org', '/wallet', '/transactions'].some(
+    prefix => pathname.startsWith(prefix)
+  );
+
+  if (isAuthRoute) return null;
+
   return (
     <footer className="bg-slate-900 text-slate-300 pt-20 pb-10">
       <div className="container">

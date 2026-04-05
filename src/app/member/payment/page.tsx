@@ -23,6 +23,13 @@ export default function MemberPaymentPage() {
     setError('');
     try {
       const res = await initiateRegistrationPayment();
+      if (res.status === 'success' && res.alreadyPaid) {
+        localStorage.setItem('is_registration_fee_paid', 'true');
+        document.cookie = `is_registration_fee_paid=true; path=/; max-age=${60 * 60 * 24}`;
+        router.push('/member');
+        return;
+      }
+
       if (res.status === 'success' && res.data.authorization_url) {
         window.location.href = res.data.authorization_url;
       } else {
@@ -66,7 +73,7 @@ export default function MemberPaymentPage() {
             <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 flex flex-col items-center space-y-4">
               <span className="text-xs font-bold uppercase tracking-widest text-[#008A62]">Registration Fee</span>
               <div className="flex items-center gap-2">
-                <span className="text-4xl font-black text-slate-900">₦5,250.00</span>
+                <span className="text-4xl font-black text-slate-900">₦550.00</span>
               </div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-center">
                 Fast, secure automated checkout via Paystack

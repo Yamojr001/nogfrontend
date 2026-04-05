@@ -1,15 +1,59 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { fetchUserProfile, verifyRegistrationPayment } from '@/lib/api';
 
 export default function PaymentSuccessPage() {
   const [mounted, setMounted] = useState(false);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [verifying, setVerifying] = useState(true);
+  const reference = searchParams.get('reference');
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Refresh profile to pick up payment status
+    const verifyPayment = async () => {
+      try {
+        // If Paystack redirected with a reference, verify immediately on backend.
+        if (reference) {
+          try {
+            await verifyRegistrationPayment(reference);
+          } catch (err: any) {
+            // Older backend instances may not expose this route yet.
+            if (err?.response?.status !== 404) {
+              throw err;
+            }
+          }
+        }
+
+        const profile = await fetchUserProfile();
+        if (profile.memberProfile?.isRegistrationFeePaid) {
+          // Update local storage with new status
+          localStorage.setItem('is_registration_fee_paid', 'true');
+          localStorage.setItem('user_name', profile.firstName || profile.name || 'Member');
+          
+          // Set cookie for middleware
+          document.cookie = `is_registration_fee_paid=true; path=/; max-age=${60 * 60 * 24}`; 
+          
+          setVerifying(false);
+        } else {
+          // Retry after 3 seconds (webhook might be slightly delayed)
+          setTimeout(verifyPayment, 3000);
+        }
+      } catch (err) {
+        console.error("Profile refresh failed:", err);
+        setVerifying(false); // Stop trying but let them try the button
+      }
+    };
+
+    verifyPayment();
+  }, [reference]);
 
   if (!mounted) return null;
 
@@ -33,12 +77,17 @@ export default function PaymentSuccessPage() {
         </p>
 
         <div className="grid gap-4">
-          <Link 
-            href="/login" 
-            className="group flex items-center justify-center gap-3 w-full py-5 bg-[#008A62] text-white rounded-2xl font-bold shadow-lg shadow-emerald-600/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-600/40 transition-all border border-emerald-500/20"
+          <button 
+            disabled={verifying}
+            onClick={() => router.push('/member')}
+            className={`group flex items-center justify-center gap-3 w-full py-5 ${verifying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-[#008A62] text-white shadow-lg shadow-emerald-600/30 hover:-translate-y-1 hover:shadow-xl'} rounded-2xl font-bold transition-all border border-emerald-500/20`}
           >
-            Access Member Portal <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+            {verifying ? (
+              <>Verifying Payment Status... <Loader2 size={20} className="animate-spin" /></>
+            ) : (
+              <>Access Member Portal <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></>
+            )}
+          </button>
           
           <div className="flex items-center justify-center gap-2 mt-4 text-slate-400">
             <ShieldCheck size={16} className="text-emerald-600" />

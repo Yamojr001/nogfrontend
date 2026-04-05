@@ -16,7 +16,6 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { NAVIGATION_CONFIG } from '@/lib/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TourProvider } from '@/components/TourProvider';
 
 const drawerWidth = 280;
 
@@ -245,13 +244,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </Box>
 
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 4 }, width: { sm: `calc(100% - ${drawerWidth}px)` }, mt: '64px', minHeight: 'calc(100vh - 64px)' }}>
-        <TourProvider>
           <AnimatePresence mode="wait">
             <motion.div key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18, ease: 'easeOut' }}>
               {children}
             </motion.div>
           </AnimatePresence>
-        </TourProvider>
       </Box>
 
       <Menu

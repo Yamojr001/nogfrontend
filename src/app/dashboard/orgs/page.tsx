@@ -35,7 +35,7 @@ export default function OrgsPage() {
   const [selected, setSelected] = useState<any>(null);
   const [actionDialog, setActionDialog] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [newOrg, setNewOrg] = useState({ name: '', type: 'PARTNER' });
+  const [newOrg, setNewOrg] = useState({ name: '', type: 'partner' });
 
   useEffect(() => {
     loadOrgs();

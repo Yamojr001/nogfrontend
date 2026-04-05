@@ -557,7 +557,7 @@ export default function MemberRegistrationPage() {
                       )}
                       
                       <div className="inline-block px-6 py-3 bg-[#008A62]/10 rounded-2xl">
-                        <span className="text-3xl font-black text-[#008A62]">₦5,250.00</span>
+                        <span className="text-3xl font-black text-[#008A62]">₦5,500.00</span>
                       </div>
                     </div>
                   </div>

@@ -68,6 +68,11 @@ export async function getCurrentUser() {
   return data; // { userId, email, role, organisationId }
 }
 
+export async function fetchUserProfile() {
+  const { data } = await api.get('/auth/profile');
+  return data; // Full User + Member record
+}
+
 export async function refreshAccessToken(refreshToken: string) {
   const { data } = await api.post('/auth/refresh', { refreshToken });
   return data;
@@ -120,6 +125,11 @@ export async function fetchBanks() {
 
 export async function initiateRegistrationPayment() {
   const { data } = await api.post('/auth/register/initialize-payment');
+  return data;
+}
+
+export async function verifyRegistrationPayment(reference: string) {
+  const { data } = await api.post('/auth/register/verify-payment', { reference });
   return data;
 }
 

@@ -2,9 +2,6 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import '@/styles/globals.css';
-import { TourProvider } from '@/components/TourProvider';
-
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
   title: { default: 'NOGALSS – National Apex Cooperative Society', template: '%s | NOGALSS' },
@@ -20,6 +17,8 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
 };
 
+import ContentWrapper from '@/components/layout/ContentWrapper';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -30,19 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif' }}>
         <Navbar />
-        <main style={{ paddingTop: 'var(--navbar-height)' }}>
-          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
-            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
-              <TourProvider>
-                {children}
-              </TourProvider>
-            </GoogleOAuthProvider>
-          ) : (
-            <TourProvider>
-              {children}
-            </TourProvider>
-          )}
-        </main>
+        <ContentWrapper>
+          {children}
+        </ContentWrapper>
         <Footer />
       </body>
     </html>
