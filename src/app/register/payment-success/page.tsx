@@ -1,12 +1,11 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchUserProfile, verifyRegistrationPayment } from '@/lib/api';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const [mounted, setMounted] = useState(false);
 
   const router = useRouter();
@@ -150,5 +149,22 @@ export default function PaymentSuccessPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#004c35)] flex items-center justify-center">
+          <div className="flex items-center gap-3 rounded-2xl bg-white/90 px-6 py-4 text-slate-700">
+            <Loader2 size={18} className="animate-spin" />
+            <span className="text-sm font-medium">Loading payment status...</span>
+          </div>
+        </div>
+      }
+    >
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
