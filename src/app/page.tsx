@@ -325,9 +325,14 @@ export default function Home() {
             ))}
           </div>
           
-          <div className="mt-20">
-            <h3 className="text-2xl font-bold text-center mb-10 text-slate-800">Additional Services We Provide</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-20 bg-[#0A4226] p-10 md:p-16 rounded-[2.5rem] text-white shadow-xl"
+          >
+            <h3 className="text-2xl md:text-3xl font-bold text-center mb-12">Additional Services We Provide</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
               {[
                 'Cooperative registration support',
                 'Government program implementation',
@@ -338,97 +343,162 @@ export default function Home() {
                 'Dividend distribution',
                 'Digital ID issuance'
               ].map((service, i) => (
-                <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm font-semibold text-slate-700 hover:text-[#008A62] hover:border-[#008A62]/30 transition-colors">
-                  {service}
+                <div key={i} className="flex items-center gap-3 text-white/90 font-medium">
+                  <div className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                  <span className="text-sm md:text-base leading-snug">{service}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Member Benefits */}
-      <section className="section bg-white">
+      {/* Benefits and Membership Levels Section */}
+      <section className="section bg-[#F8FAFC]">
         <div className="container">
-          <div className="grid lg:grid-cols-[1fr_1.5fr] gap-12 lg:gap-16 items-center">
-            <div className="space-y-6">
-              <span className="text-[#008A62] font-black uppercase tracking-[0.2em] text-xs">Member Benefits</span>
-              <h2 className="text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
-                Why Join NOGALSS?
-              </h2>
-              <p className="text-lg text-slate-600 leading-relaxed font-medium">
-                As a member, you gain access to a comprehensive ecosystem of financial services, empowerment programs, and growth opportunities.
-              </p>
-            </div>
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-start">
             
-            <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                'Access to low-interest cooperative loans',
-                'Participation in empowerment programs',
-                'Cooperative dividends and surplus sharing',
-                'Bulk purchasing and shared infrastructure',
-                'Training, certification & skills development',
-                'Health insurance & welfare schemes',
-                'Digital ID & cooperative wallet',
-                'Policy advocacy & national representation',
-                'Youth, women & PWD inclusion programs',
-                'International partnerships & exchange programs'
-              ].map((benefit, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-                  <div className="mt-1 bg-[#008A62]/10 p-1 rounded-full text-[#008A62] flex-shrink-0">
-                    <CheckCircle2 size={16} className="fill-[#008A62]/20" />
-                  </div>
-                  <span className="font-semibold text-slate-700 text-sm leading-snug">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Left Column: Benefits Content */}
+            <div className="space-y-10">
+              <div className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  className="px-5 py-2 rounded-full bg-amber-50 text-amber-600 text-xs font-black uppercase tracking-[0.2em] w-fit"
+                >
+                  Member Benefits
+                </motion.div>
+                
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="text-4xl lg:text-[3.5rem] font-black text-slate-900 leading-[1.1] tracking-tight"
+                >
+                  Why Join <span className="text-[#008A62]">NOGALSS?</span>
+                </motion.h2>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="text-lg lg:text-xl text-slate-600 leading-relaxed font-medium max-w-[540px]"
+                >
+                  As a member, you gain access to a comprehensive ecosystem of financial services, empowerment programs, and growth opportunities.
+                </motion.p>
+              </div>
 
-      {/* Start Your Membership */}
-      <section className="section bg-gray-50/50">
-        <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4">Start Your <span className="text-[#008A62]">Membership</span></h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg hover:shadow-xl transition-shadow flex flex-col">
-               <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
-                 <Building2 size={24} />
-               </div>
-               <h3 className="text-2xl font-bold text-slate-900 mb-6">Apex / Umbrella Organizations</h3>
-               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-400" /> National associations & unions</li>
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Sector-based apex bodies</li>
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-400" /> NGOs, CSOs & Professional groups</li>
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Registered cooperatives</li>
-               </ul>
+              {/* Benefits Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 pt-4">
+                {[
+                  { icon: Wallet, label: 'Access to low-interest cooperative loans' },
+                  { icon: TrendingUp, label: 'Cooperative dividends and surplus sharing' },
+                  { icon: GraduationCap, label: 'Training, certification & skills development' },
+                  { icon: Monitor, label: 'Digital ID & cooperative wallet' },
+                  { icon: Users, label: 'Youth, women & PWD inclusion programs' },
+                  { icon: Briefcase, label: 'Participation in empowerment programs' },
+                  { icon: Building2, label: 'Bulk purchasing and shared infrastructure' },
+                  { icon: HeartHandshake, label: 'Health insurance & welfare schemes' },
+                  { icon: ShieldCheck, label: 'Policy advocacy & national representation' },
+                  { icon: Globe, label: 'International partnerships & exchange programs' }
+                ].map((benefit, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center gap-4 group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#008A62]/10 text-[#008A62] flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-[#008A62] group-hover:text-white transition-all duration-300">
+                      <benefit.icon size={20} strokeWidth={2.5} />
+                    </div>
+                    <span className="font-bold text-slate-700 text-[15px] leading-tight">{benefit.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* CTA Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="pt-6"
+              >
+                <Link 
+                  href="/register/member" 
+                  className="inline-flex items-center gap-3 bg-[#008A62] text-white px-10 py-5 rounded-2xl font-black text-lg shadow-[0_15px_30px_-5px_rgba(0,138,98,0.3)] hover:bg-[#007A57] transition-all hover:scale-[1.02] active:scale-[0.98] group"
+                >
+                  Start Your Membership
+                  <ArrowRight size={22} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
             </div>
-            
-            <div className="bg-[#008A62] text-white p-8 rounded-[2rem] shadow-2xl hover:shadow-[0_20px_40px_rgba(0,138,98,0.3)] transition-shadow flex flex-col transform md:-translate-y-4">
-               <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 text-white">
-                 <Users size={24} />
-               </div>
-               <h3 className="text-2xl font-bold mb-6">Member Organizations</h3>
-               <ul className="space-y-4 mb-8 text-white/90">
-                 <li className="flex items-center gap-3 font-medium"><span className="w-2 h-2 rounded-full bg-white/50" /> Registered cooperatives</li>
-                 <li className="flex items-center gap-3 font-medium"><span className="w-2 h-2 rounded-full bg-white/50" /> Community-based groups</li>
-                 <li className="flex items-center gap-3 font-medium"><span className="w-2 h-2 rounded-full bg-white/50" /> Occupational & trade groups</li>
-               </ul>
+
+            {/* Right Column: Membership Cards */}
+            <div className="flex flex-col gap-6 w-full ml-auto lg:max-w-[480px]">
+              {/* Card 1: Apex */}
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-[#008A62] text-white p-8 lg:p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-white/10"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700" />
+                <h3 className="text-2xl font-black mb-8 relative z-10">Apex / Umbrella Organizations</h3>
+                <ul className="space-y-5 relative z-10">
+                  {['National associations & unions', 'Sector-based apex bodies', 'NGOs, CSOs & Professional groups', 'Registered cooperatives'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-4 text-white font-bold">
+                      <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={14} strokeWidth={3} />
+                      </div>
+                      <span className="text-[17px] tracking-tight">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              {/* Card 2: Member Organizations */}
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-[#F59E0B] text-white p-8 lg:p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-white/10"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700" />
+                <h3 className="text-2xl font-black mb-8 relative z-10">Member Organizations</h3>
+                <ul className="space-y-5 relative z-10">
+                  {['Registered cooperatives', 'Community-based groups', 'Occupational & trade groups'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-4 text-white font-bold">
+                      <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={14} strokeWidth={3} />
+                      </div>
+                      <span className="text-[17px] tracking-tight">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              {/* Card 3: Individual Financial Members */}
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-[#3B82F6] text-white p-8 lg:p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-white/10"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700" />
+                <h3 className="text-2xl font-black mb-8 relative z-10">Individual Financial Members</h3>
+                <ul className="space-y-5 relative z-10">
+                  {['Artisans & skilled workers', 'Entrepreneurs'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-4 text-white font-bold">
+                      <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={14} strokeWidth={3} />
+                      </div>
+                      <span className="text-[17px] tracking-tight">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
             </div>
-            
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg hover:shadow-xl transition-shadow flex flex-col">
-               <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                 <Briefcase size={24} />
-               </div>
-               <h3 className="text-2xl font-bold text-slate-900 mb-6">Individual Financial Members</h3>
-               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-blue-400" /> Artisans & skilled workers</li>
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-blue-400" /> Entrepreneurs</li>
-                 <li className="flex items-center gap-3 text-slate-600 font-medium"><span className="w-2 h-2 rounded-full bg-blue-400" /> Informal sector participants</li>
-               </ul>
-            </div>
+
           </div>
         </div>
       </section>

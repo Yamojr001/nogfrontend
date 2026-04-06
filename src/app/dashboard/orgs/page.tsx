@@ -37,6 +37,63 @@ export default function OrgsPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [newOrg, setNewOrg] = useState({ name: '', type: 'partner' });
 
+  const buildCreateOrganisationPayload = (raw: any) => {
+    const allowedKeys = new Set([
+      'name', 'acronym', 'sector', 'email', 'phone', 'regNumber', 'type', 'hqAddress',
+      'country', 'state', 'operatingStates', 'parentId', 'representativeUserId',
+      'establishmentDate', 'orgTypeStr', 'activeMemberCount',
+      'repName', 'repPosition', 'repPhone', 'repEmail', 'repGender', 'repNationality',
+      'repStateOfOrigin', 'repLga', 'repNin', 'repBvn', 'repIdType', 'repIdUrl', 'repPassportUrl',
+      'participateInSavings', 'savingsFrequency', 'monthlyContributionAmount',
+      'areasOfParticipation', 'proposedBeneficiaries',
+      'orgAccountName', 'orgBankName', 'orgAccountNumber', 'orgBvn', 'signatories',
+      'officialZone', 'receivedBy', 'officialRemarks',
+    ]);
+
+    const payload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(raw || {})) {
+      if (!allowedKeys.has(key)) continue;
+      if (value === '' || value === null || value === undefined) continue;
+      payload[key] = value;
+    }
+
+    if (payload.type) {
+      payload.type = String(payload.type).toLowerCase();
+    }
+
+    if (payload.parentId !== undefined) {
+      const n = Number(payload.parentId);
+      if (Number.isFinite(n)) payload.parentId = n;
+      else delete payload.parentId;
+    }
+
+    if (payload.representativeUserId !== undefined) {
+      const n = Number(payload.representativeUserId);
+      if (Number.isFinite(n)) payload.representativeUserId = n;
+      else delete payload.representativeUserId;
+    }
+
+    if (payload.activeMemberCount !== undefined) {
+      const n = Number(payload.activeMemberCount);
+      if (Number.isFinite(n)) payload.activeMemberCount = n;
+      else delete payload.activeMemberCount;
+    }
+
+    if (payload.proposedBeneficiaries !== undefined) {
+      const n = Number(payload.proposedBeneficiaries);
+      if (Number.isFinite(n)) payload.proposedBeneficiaries = n;
+      else delete payload.proposedBeneficiaries;
+    }
+
+    if (payload.monthlyContributionAmount !== undefined) {
+      const n = Number(payload.monthlyContributionAmount);
+      if (Number.isFinite(n)) payload.monthlyContributionAmount = n;
+      else delete payload.monthlyContributionAmount;
+    }
+
+    return payload;
+  };
+
   useEffect(() => {
     loadOrgs();
   }, []);
@@ -45,7 +102,9 @@ export default function OrgsPage() {
     try {
       setLoading(true);
       const data = await api.get('/organisations').then(res => res.data);
-      setOrgs(data);
+      // Ensure all orgs are treated as active for display as per user request
+      const activeOrgs = data.map((o: any) => ({ ...o, status: 'active' }));
+      setOrgs(activeOrgs);
     } catch (e) {
       console.error("Failed to load organisations", e);
     } finally {
@@ -55,11 +114,16 @@ export default function OrgsPage() {
 
   const handleRegister = async () => {
     try {
-      await api.post('/organisations', newOrg);
+      const payload = {
+        ...buildCreateOrganisationPayload(newOrg),
+        status: 'active', // Explicitly set active on creation
+      };
+      await api.post('/organisations', payload);
       setIsRegistering(false);
       loadOrgs();
-    } catch (e) {
-      console.error("Failed to register organisation", e);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Failed to register organisation';
+      console.error('Failed to register organisation', msg, e?.response?.data);
     }
   };
 
@@ -140,7 +204,7 @@ export default function OrgsPage() {
             <Table>
               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                 <TableRow>
-                  {['Organisation', 'Type', 'Status', 'Members', 'Country', 'Joined', 'Actions'].map(h => (
+                  {['Organisation', 'Code', 'Type', 'Status', 'Members', 'Country', 'Joined', 'Actions'].map(h => (
                     <TableCell key={h} sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -157,10 +221,15 @@ export default function OrgsPage() {
                       </Box>
                     </TableCell>
                     <TableCell>
+                      <Typography sx={{ fontFamily: 'monospace', fontWeight: 700, px: 1, py: 0.5, bgcolor: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', color: '#475569', display: 'inline-block' }}>
+                        {org.code || 'NO-CODE'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <Chip label={org.type} size="small" variant="outlined" sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }} />
                     </TableCell>
                     <TableCell>
-                      <Chip label={org.status} color={statusColor[org.status] || 'default'} size="small" sx={{ borderRadius: '8px', textTransform: 'capitalize', fontWeight: 700 }} />
+                      <Chip label="active" color="success" size="small" sx={{ borderRadius: '8px', textTransform: 'capitalize', fontWeight: 700 }} />
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{(org as any).membersCount || 0}</TableCell>
                     <TableCell sx={{ color: '#64748b' }}>Nigeria</TableCell>

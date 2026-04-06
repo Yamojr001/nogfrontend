@@ -92,10 +92,8 @@ export function getRoleFromToken(): string | null {
 }
 
 // ─── Members ────────────────────────────────────────────────────────────────
-export async function registerMember(payload: Record<string, any>) {
-  const { data } = await api.post('/auth/register', payload);
-  return data;
-}
+export const registerMember = (data: any) => api.post('/auth/register', data).then(res => res.data);
+export const resolveOrgCode = (code: string) => api.get(`/auth/resolve-code/${code}`).then(res => res.data);
 
 // ─── Organisations & Hierarchy ────────────────────────────────────────────────
 export async function registerOrganisation(payload: Record<string, any>) {

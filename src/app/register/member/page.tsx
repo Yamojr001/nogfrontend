@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  CheckCircle2, User, Mail, Lock, ArrowRight, ShieldCheck, Loader2
+  CheckCircle2, User, Mail, Lock, ArrowRight, ShieldCheck, Loader2,
+  ChevronDown, HeartPulse, Tractor, Briefcase, Home, Wrench, Coins
 } from 'lucide-react';
-import { registerMember } from '@/lib/api';
+import { registerMember, resolveOrgCode } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { EMPOWERMENT_CATEGORIES } from '@/constants/empowerment';
 
 export default function MemberRegistrationPage() {
   const router = useRouter();
@@ -20,19 +22,63 @@ export default function MemberRegistrationPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    organisationCode: '',
+    empowermentInterest: [] as string[],
   });
+
+  const toggleEmpowerment = (label: string) => {
+    setForm(prev => {
+      const current = prev.empowermentInterest;
+      if (current.includes(label)) {
+        return { ...prev, empowermentInterest: current.filter(i => i !== label) };
+      } else {
+        return { ...prev, empowermentInterest: [...current, label] };
+      }
+    });
+  };
+
+  const [resolvedOrg, setResolvedOrg] = useState<{name: string, hierarchy: string, full: string} | null>(null);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Debounced organization code resolution
+  useEffect(() => {
+    if (!form.organisationCode) {
+      setResolvedOrg(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      if (form.organisationCode.length >= 7) {
+        setIsValidatingCode(true);
+        try {
+          const res = await resolveOrgCode(form.organisationCode);
+          setResolvedOrg(res);
+        } catch (err) {
+          setResolvedOrg(null);
+        } finally {
+          setIsValidatingCode(false);
+        }
+      } else {
+        setResolvedOrg(null);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [form.organisationCode]);
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
   const validateForm = () => {
     if (!form.name) return 'Full name is required';
     if (!form.email) return 'Email is required';
+    // Organization code is now optional (defaults to Apex)
     if (form.password.length < 8) return 'Password must be at least 8 characters';
     if (form.password !== form.confirmPassword) return 'Passwords do not match';
+    if (form.empowermentInterest.length === 0) return 'Please choose at least one empowerment priority';
     return null;
   };
 
@@ -52,8 +98,9 @@ export default function MemberRegistrationPage() {
         email: form.email,
         password: form.password,
         role: 'member',
-        organisationCode: 'APEX-0001', // Default apex org
+        organisationCode: form.organisationCode,
         membershipType: 'individual',
+        empowermentInterest: form.empowermentInterest.join(', '),
       };
       
       const res = await registerMember(payload);
@@ -189,6 +236,53 @@ export default function MemberRegistrationPage() {
                   onChange={(e) => update('confirmPassword', e.target.value)}
                   required 
                 />
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2 mb-2">
+                <HeartPulse className="text-[#008A62]" size={20} />
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Priority Empowerment Interests</h3>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-4">
+                Choose one or more of your priority empowerment areas below to help us tailor our support to your needs.
+              </p>
+
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {EMPOWERMENT_CATEGORIES.map((cat) => (
+                  <div key={cat.id} className="space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-50">
+                      <span className="text-[11px] font-black text-[#008A62] uppercase tracking-tight">{cat.title}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {cat.options.map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => toggleEmpowerment(opt.label)}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left group ${
+                            form.empowermentInterest.includes(opt.label)
+                              ? 'bg-emerald-50 border-emerald-200 shadow-sm shadow-emerald-100'
+                              : 'bg-white border-slate-100 hover:border-emerald-200'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                            form.empowermentInterest.includes(opt.label)
+                              ? 'bg-[#008A62] border-[#008A62] text-white'
+                              : 'bg-white border-slate-200'
+                          }`}>
+                            {form.empowermentInterest.includes(opt.label) && <CheckCircle2 size={12} />}
+                          </div>
+                          <span className={`text-[11px] font-bold transition-colors ${
+                            form.empowermentInterest.includes(opt.label) ? 'text-emerald-900' : 'text-slate-600'
+                          }`}>
+                            {opt.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

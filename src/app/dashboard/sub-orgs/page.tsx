@@ -29,10 +29,42 @@ export default function SubOrgsPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [newOrg, setNewOrg] = useState<any>({ 
     name: '', 
-    type: 'SUB_ORG',
-    parentId: '',
-    status: 'active'
+    type: 'sub_org',
+    parentId: ''
   });
+
+  const buildCreateOrganisationPayload = (raw: any) => {
+    const allowedKeys = new Set([
+      'name', 'acronym', 'sector', 'email', 'phone', 'regNumber', 'type', 'hqAddress',
+      'country', 'state', 'operatingStates', 'parentId', 'representativeUserId',
+      'establishmentDate', 'orgTypeStr', 'activeMemberCount',
+      'repName', 'repPosition', 'repPhone', 'repEmail', 'repGender', 'repNationality',
+      'repStateOfOrigin', 'repLga', 'repNin', 'repBvn', 'repIdType', 'repIdUrl', 'repPassportUrl',
+      'participateInSavings', 'savingsFrequency', 'monthlyContributionAmount',
+      'areasOfParticipation', 'proposedBeneficiaries',
+      'orgAccountName', 'orgBankName', 'orgAccountNumber', 'orgBvn', 'signatories',
+      'officialZone', 'receivedBy', 'officialRemarks',
+    ]);
+
+    const payload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(raw || {})) {
+      if (!allowedKeys.has(key)) continue;
+      if (value === '' || value === null || value === undefined) continue;
+      payload[key] = value;
+    }
+
+    if (payload.type) {
+      payload.type = String(payload.type).toLowerCase();
+    }
+
+    if (payload.parentId !== undefined) {
+      const n = Number(payload.parentId);
+      if (Number.isFinite(n)) payload.parentId = n;
+      else delete payload.parentId;
+    }
+
+    return payload;
+  };
 
   useEffect(() => {
     loadOrgs();
@@ -44,7 +76,7 @@ export default function SubOrgsPage() {
       setLoading(true);
       const data = await api.get('/organisations').then(res => res.data);
       // Filter for SUB_ORG only
-      setOrgs(data.filter((o: any) => o.type === 'SUB_ORG'));
+      setOrgs(data.filter((o: any) => String(o.type).toLowerCase() === 'sub_org'));
     } catch (e) {
       console.error("Failed to load sub-organisations", e);
     } finally {
@@ -55,7 +87,7 @@ export default function SubOrgsPage() {
   async function loadPartners() {
     try {
       const data = await api.get('/organisations').then(res => res.data);
-      setPartners(data.filter((o: any) => o.type === 'PARTNER'));
+      setPartners(data.filter((o: any) => String(o.type).toLowerCase() === 'partner'));
     } catch (e) {
       console.error("Failed to load partners", e);
     }
@@ -64,12 +96,14 @@ export default function SubOrgsPage() {
   const handleRegister = async () => {
     try {
       if (!newOrg.name) return;
-      await api.post('/organisations', newOrg);
+      const payload = buildCreateOrganisationPayload(newOrg);
+      await api.post('/organisations', payload);
       setIsRegistering(false);
       loadOrgs();
-      setNewOrg({ name: '', type: 'SUB_ORG', status: 'active', parentId: '' });
-    } catch (e) {
-      console.error("Failed to register sub-org", e);
+      setNewOrg({ name: '', type: 'sub_org', parentId: '' });
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Failed to register sub-org';
+      console.error('Failed to register sub-org', msg, e?.response?.data);
     }
   };
 

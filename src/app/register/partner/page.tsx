@@ -6,9 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Building2, User, ShieldCheck, HeartHandshake, Landmark, 
   ChevronRight, ChevronLeft, Send, CheckCircle2, Search, 
-  ChevronDown, Lock, Mail, Phone, FileText, Camera
+  ChevronDown, Lock, Mail, Phone, FileText, Camera, Loader2
 } from 'lucide-react';
-import { registerOrganisation, fetchBanks } from '@/lib/api';
+import api, { registerOrganisation, fetchBanks } from '@/lib/api';
 
 const SearchableSelect = ({ label, value, options, onChange, placeholder }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -97,6 +97,7 @@ export default function PartnerRegistrationPage() {
     // Section A
     name: '', acronym: '', establishmentDate: '', orgTypeStr: '', sector: '', 
     regNumber: '', activeMemberCount: '', hqAddress: '', operatingStates: '',
+    parentOrgCode: '',
     // Section B
     repName: '', repPosition: '', repPhone: '', repEmail: '', repGender: '', 
     repNationality: 'Nigerian', repStateOfOrigin: '', repBankName: '', repAccountNumber: '', repAccountName: '',
@@ -111,9 +112,33 @@ export default function PartnerRegistrationPage() {
     declaration: false,
   });
 
+  const [resolving, setResolving] = useState(false);
+  const [hierarchy, setHierarchy] = useState('');
+
   useEffect(() => {
     fetchBanks().then(setBanks).catch(console.error);
   }, []);
+
+  // Debounced Parent Org Code Check
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (form.parentOrgCode && form.parentOrgCode.length >= 4) {
+        setResolving(true);
+        try {
+          const res = await api.get(`/auth/resolve-code/${form.parentOrgCode}`);
+          setHierarchy(res.data.hierarchy);
+        } catch (e) {
+          setHierarchy('');
+        } finally {
+          setResolving(false);
+        }
+      } else {
+        setHierarchy('');
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [form.parentOrgCode]);
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -131,6 +156,7 @@ export default function PartnerRegistrationPage() {
       const payload = {
         ...form,
         type: 'partner',
+        parentOrgCode: form.parentOrgCode || undefined,
         areasOfParticipation: JSON.stringify(form.areasOfParticipation),
       };
       await registerOrganisation(payload as any);
@@ -197,6 +223,32 @@ export default function PartnerRegistrationPage() {
                     <div className="space-y-2 md:col-span-2">
                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Name of Organization / Group</label>
                        <input className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#008A62] font-medium" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Full registered name" />
+                    </div>
+                    
+                    <div className="space-y-2 md:col-span-2">
+                       <label className="text-xs font-bold uppercase tracking-wider text-slate-500 text-[#008A62]">Parent Organization Code</label>
+                       <div className="relative">
+                          <input 
+                            className="w-full px-4 py-3 bg-emerald-50/30 border border-emerald-100 rounded-xl outline-none focus:border-[#008A62] font-black tracking-widest text-[#008A62]" 
+                            value={form.parentOrgCode || ''} 
+                            onChange={e => update('parentOrgCode', e.target.value.toUpperCase())} 
+                            placeholder="XX-0000" 
+                          />
+                          {resolving && (
+                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                <Loader2 size={18} className="animate-spin text-[#008A62]" />
+                             </div>
+                          )}
+                       </div>
+                       <AnimatePresence>
+                         {hierarchy && (
+                           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-2">
+                             <CheckCircle2 size={14} className="text-emerald-500" />
+                             <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-tight">Linking to: <span className="text-emerald-900 ml-1">{hierarchy}</span></span>
+                           </motion.div>
+                         )}
+                       </AnimatePresence>
+                       <p className="text-[10px] text-slate-400 font-medium italic">If this organization is under another partner or the National Apex, enter their code here.</p>
                     </div>
                     <div className="space-y-2">
                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Acronym</label>
