@@ -1,104 +1,255 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Search, Calendar, Tag, ArrowRight } from 'lucide-react';
 
-// Mock data until API is connected
-const mockNews = [
-  { id: 1, date: '2026-03-08', category: 'Announcement', title: 'NOGALSS Launches National Digital Cooperative Banking Platform', excerpt: 'NOGALSS unveils its landmark digital platform enabling 500,000+ members across Nigeria to access savings, loans, and empowerment programs from any device.', featured: true },
-  { id: 2, date: '2026-02-20', category: 'Event', title: 'Annual General Assembly 2026 Holds in Abuja', excerpt: 'Representatives from all 36 states gathered at the 2026 Annual General Assembly to review progress, approve budgets and elect new leadership.', featured: false },
-  { id: 3, date: '2026-02-05', category: 'Partnership', title: 'NOGALSS Signs MOU with International Cooperative Alliance', excerpt: 'A strategic partnership agreement with ICA opens new avenues for international cooperative training and global market access for Nigerian artisans.', featured: false },
-  { id: 4, date: '2026-01-28', category: 'Empowerment', title: '2,000 Farmers Benefit from Agricultural Equipment Financing', excerpt: 'Phase 1 of the NOGALSS Agriculture Empowerment Program disbursed equipment loans to 2,000 smallholder farmers across 12 states.', featured: false },
-  { id: 5, date: '2026-01-15', category: 'Training', title: 'Digital Skills Program Trains 5,000 Young Artisans', excerpt: 'In partnership with SMEDAN, NOGALSS ran a 3-month digital skills bootcamp benefiting 5,000 young artisans and tradespeople nationwide.', featured: false },
-  { id: 6, date: '2025-12-30', category: 'Finance', title: 'NOGALSS Members Receive Annual Savings Dividends', excerpt: 'Over 400,000 members received their annual cooperative savings dividends — totalling ₦2.4 billion — the largest payout in the organisation\'s history.', featured: false },
+import { useEffect, useMemo, useState } from 'react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { motion } from 'framer-motion';
+import { fetchNews } from '@/lib/api';
+import { Calendar, Tag, ArrowRight, Search } from 'lucide-react';
+
+type NewsItem = {
+  id: number | string;
+  title?: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  published_at?: string;
+  featured_image?: string;
+  is_featured?: boolean;
+};
+
+const categories = ['all', 'news', 'announcement', 'event', 'press_release'] as const;
+
+const sampleNews: NewsItem[] = [
+  {
+    id: 1,
+    title: 'NOGALSS Launches Digital Cooperative Platform',
+    excerpt:
+      'The new platform enables members to access savings, loans, and cooperative services digitally from anywhere in Nigeria.',
+    category: 'announcement',
+    published_at: new Date().toISOString(),
+    featured_image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    is_featured: true,
+  },
+  {
+    id: 2,
+    title: 'Annual General Meeting Scheduled for December',
+    excerpt:
+      'All members are invited to participate in the upcoming AGM where key decisions about the cooperative will be made.',
+    category: 'event',
+    published_at: new Date(Date.now() - 86400000).toISOString(),
+    featured_image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+  },
+  {
+    id: 3,
+    title: 'New Partnership with International Cooperative Alliance',
+    excerpt:
+      'NOGALSS has established a formal partnership with ICA to enhance capacity building and international opportunities.',
+    category: 'news',
+    published_at: new Date(Date.now() - 172800000).toISOString(),
+    featured_image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80',
+  },
 ];
 
-const categories = ['All', 'Announcement', 'Event', 'Partnership', 'Empowerment', 'Training', 'Finance'];
+function formatDate(value?: string): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function getCategoryColor(category?: string): string {
+  const colors: Record<string, string> = {
+    news: 'bg-blue-100 text-blue-700',
+    announcement: 'bg-amber-100 text-amber-700',
+    event: 'bg-purple-100 text-purple-700',
+    press_release: 'bg-emerald-100 text-emerald-700',
+  };
+  return colors[category || ''] || 'bg-gray-100 text-gray-700';
+}
 
 export default function NewsPage() {
-  const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [news, setNews] = useState(mockNews);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<(typeof categories)[number]>('all');
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const featured = mockNews.find(n => n.featured);
-  const filtered = mockNews.filter(n => !n.featured && (activeCategory === 'All' || n.category === activeCategory) && (n.title.toLowerCase().includes(search.toLowerCase()) || n.excerpt.toLowerCase().includes(search.toLowerCase())));
+  useEffect(() => {
+    let active = true;
+
+    async function loadNews() {
+      setIsLoading(true);
+      try {
+        const response = await fetchNews(1, 24);
+        const items =
+          (Array.isArray(response?.data) && response.data) ||
+          (Array.isArray(response?.items) && response.items) ||
+          (Array.isArray(response) && response) ||
+          [];
+
+        if (active) {
+          setNews(items as NewsItem[]);
+        }
+      } catch {
+        if (active) {
+          setNews([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadNews();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const displayNews = useMemo(() => (news.length > 0 ? news : sampleNews), [news]);
+
+  const filteredNews = useMemo(() => {
+    return displayNews.filter((item) => {
+      const title = item.title || '';
+      const excerpt = item.excerpt || item.content || '';
+      const matchesSearch =
+        title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [displayNews, searchTerm, selectedCategory]);
 
   return (
-    <>
-      <section style={{ background: 'var(--primary-dark)', padding: '160px 0 100px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div className="container reveal">
-          <span className="section-tag" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>News & Updates</span>
-          <h1 className="display-2" style={{ color: 'white', textAlign: 'center', marginBottom: '24px' }}>News & Announcements</h1>
-          <p className="body-lg" style={{ color: 'rgba(255,255,255,0.7)', margin: '0 auto', maxWidth: '800px' }}>Stay up to date with the latest from NOGALSS — programs, events, and cooperative news.</p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-white">
+      <Navbar />
 
-      {/* Featured */}
-      {featured && (
-        <section style={{ padding: '64px 0 0', background: 'var(--gray-50)' }}>
-          <div className="container">
-            <div className="reveal" style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '64px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'center', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xl)' }}>
-              <div style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', borderRadius: '24px', height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '20px', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '5rem', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }}>📰</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Featured Story</span>
+      <main className="pt-20">
+        <section className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 py-24">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">News & Announcements</h1>
+              <p className="text-xl text-emerald-100 max-w-3xl mx-auto">
+                Stay updated with the latest from NOGALSS
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="py-8 border-b bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  placeholder="Search news..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-10 w-full rounded-md border border-gray-300 px-3 pl-10 py-2 text-sm"
+                />
               </div>
-              <div>
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '20px' }}>
-                  <span style={{ background: 'var(--primary-soft)', color: 'var(--primary)', padding: '6px 16px', borderRadius: 'var(--radius-full)', fontSize: '0.8rem', fontWeight: '800' }}>Featured</span>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} />{featured.date}</span>
-                </div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--primary-dark)', marginBottom: '24px', lineHeight: '1.2', fontWeight: '800' }}>{featured.title}</h2>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '32px' }}>{featured.excerpt}</p>
-                <button className="btn btn-primary btn-lg">Read Full Story <ArrowRight size={18} /></button>
+
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedCategory === category
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {category === 'all'
+                      ? 'All'
+                      : category.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </section>
-      )}
 
-      <section className="section" style={{ background: 'var(--gray-50)' }}>
-        <div className="container">
-          {/* Filters */}
-          <div className="reveal" style={{ display: 'flex', gap: '20px', marginBottom: '56px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
-              <Search size={18} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search news and articles..." style={{ width: '100%', padding: '16px 20px 16px 56px', border: '1.5px solid var(--border)', borderRadius: '16px', fontSize: '1rem', fontFamily: 'var(--font-sans)', outline: 'none', transition: 'border-color 0.2s', boxShadow: 'var(--shadow-sm)' }} onFocus={e => e.target.style.borderColor = 'var(--primary)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-            </div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {categories.map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)', fontSize: '0.85rem', fontWeight: '700', border: '1.5px solid', cursor: 'pointer', background: activeCategory === cat ? 'var(--primary)' : 'white', color: activeCategory === cat ? 'white' : 'var(--text-secondary)', borderColor: activeCategory === cat ? 'var(--primary)' : 'var(--border)', transition: 'all 0.2s', boxShadow: activeCategory === cat ? 'var(--shadow-md)' : 'none' }}>{cat}</button>
-              ))}
-            </div>
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {isLoading ? (
+              <div className="text-center py-16 text-gray-500">Loading news...</div>
+            ) : filteredNews.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredNews.map((item, index) => (
+                  <motion.article
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      {item.featured_image ? (
+                        <img
+                          src={item.featured_image}
+                          alt={item.title || 'News image'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                          <Tag className="h-12 w-12 text-emerald-300" />
+                        </div>
+                      )}
+                      {item.is_featured && (
+                        <span className="absolute top-4 right-4 bg-amber-500 text-white rounded-full px-2.5 py-1 text-xs font-semibold">
+                          Featured
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getCategoryColor(item.category)}`}
+                        >
+                          {(item.category || 'general').replace('_', ' ')}
+                        </span>
+                        {item.published_at && (
+                          <span className="flex items-center gap-1 text-gray-500 text-sm">
+                            <Calendar className="h-4 w-4" />
+                            {formatDate(item.published_at)}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+
+                      <p className="text-gray-600 mb-4 line-clamp-3">{item.excerpt || item.content}</p>
+
+                      <button className="flex items-center gap-2 text-emerald-600 font-medium hover:gap-3 transition-all">
+                        Read More
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <Tag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No news found</h3>
+                <p className="text-gray-500">Check back soon for updates</p>
+              </div>
+            )}
           </div>
+        </section>
+      </main>
 
-          {/* News Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '32px' }}>
-            {filtered.map((n, i) => (
-              <article key={n.id} className="reveal" style={{ transitionDelay: `${i * 0.1}s`, background: 'white', borderRadius: 'var(--radius-lg)', padding: '36px', border: '1px solid var(--border)', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s', cursor: 'pointer' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xl)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-8px)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary-soft)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow)'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                  <span style={{ background: 'var(--primary-soft)', color: 'var(--primary)', padding: '4px 12px', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Tag size={12} />{n.category}
-                  </span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Calendar size={13} />{n.date}
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--primary-dark)', marginBottom: '16px', lineHeight: '1.4', fontFamily: 'var(--font-display)' }}>{n.title}</h3>
-                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.7', flex: 1, marginBottom: '24px' }}>{n.excerpt}</p>
-                <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>Read more <ArrowRight size={14} /></span>
-              </article>
-            ))}
-          </div>
-
-          {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '100px 24px', color: 'var(--text-muted)' }} className="reveal">
-              <p style={{ fontSize: '1.2rem' }}>No news found matching your search or filter.</p>
-            </div>
-          )}
-        </div>
-      </section>
-    </>
+      <Footer />
+    </div>
   );
 }

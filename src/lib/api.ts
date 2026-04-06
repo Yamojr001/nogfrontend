@@ -46,7 +46,7 @@ api.interceptors.response.use(
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export async function authLogin(email: string, password: string) {
   const { data } = await api.post('/auth/login', { email, password });
-  return data; // { access_token, refresh_token }
+  return data; // { access_token, refresh_token, hasPaidRegistrationFee, message, ... }
 }
 
 export async function authGoogleLogin(idToken: string) {
@@ -303,8 +303,13 @@ export async function fetchMemberWallet() {
   return data;
 }
 
-export async function fetchMemberTransactions() {
-  const { data } = await api.get('/member/transactions');
+export async function fetchMemberTransactions(params?: {
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  status?: string;
+}) {
+  const { data } = await api.get('/member/transactions', { params });
   return data;
 }
 

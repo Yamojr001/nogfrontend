@@ -1,131 +1,258 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
-import { Users, Building2, UserCircle, CheckCircle, ArrowRight } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { motion } from 'framer-motion';
+import {
+  Building2,
+  Users,
+  User,
+  Check,
+  ArrowRight,
+  Wallet,
+  Award,
+  TrendingUp,
+  Globe,
+  Shield,
+  Gift,
+  Star,
+  UserPlus,
+} from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Membership & Benefits',
-  description: 'NOGALSS Membership Categories, Benefits, and Stakeholder Structure.',
-};
-
-const categories = [
-  { 
-    title: 'Apex / Umbrella Organizations', icon: Building2,
-    items: ['National associations, unions, federations', 'Sector-based apex bodies', 'NGOs, CSOs, Professional groups', 'Cooperatives']
+const membershipCategories = [
+  {
+    icon: Building2,
+    title: 'Apex / Umbrella Organizations',
+    color: 'emerald',
+    members: [
+      'National associations, unions, federations',
+      'Sector-based apex bodies',
+      'NGOs, CSOs, Professional groups',
+      'Registered cooperatives',
+    ],
+    benefits: [
+      'Registration commissions',
+      'Leadership dividend pool',
+      'Priority access to contracts',
+      'Governance appointments',
+      'International exposure',
+    ],
   },
   {
-    title: 'Member Organizations', icon: Users,
-    items: ['Registered cooperatives', 'Associations and community-based groups', 'Occupational and trade groups']
-  },
-  {
-    title: 'Individual Members (Financial)', icon: UserCircle,
-    items: ['Artisans', 'Skilled workers', 'Entrepreneurs', 'Informal sector participants']
-  }
-];
-
-const stakeholderBenefits = [
-  {
-    title: 'Association Leadership',
-    items: ['Registration commissions', 'Leadership dividend pool', 'Mobilization bonuses', 'Priority access to contracts', 'Governance & committee appointments', 'International exposure', 'Policy engagement opportunities']
-  },
-  {
+    icon: Users,
     title: 'Member Organizations',
-    items: ['Share of registration fees', 'Performance bonuses', 'Group loan eligibility', 'CDF grant access', 'Franchise & dealership rights', 'Institutional capacity development', 'National visibility & branding']
+    color: 'blue',
+    members: [
+      'Registered cooperatives',
+      'Associations and community-based groups',
+      'Occupational and trade groups',
+    ],
+    benefits: [
+      'Share of registration fees',
+      'Group loan eligibility',
+      'CDF grant access',
+      'Franchise rights',
+      'National visibility',
+    ],
   },
   {
-    title: 'Individual Members',
-    items: ['Savings & loan access', 'Annual dividends', 'Empowerment assets (tools, tricycles, inputs)', 'Market access & trade fairs', 'Training & certification', 'Digital identity & networking', 'Welfare & emergency assistance']
-  }
-];
+    icon: User,
+    title: 'Individual Financial Members',
+    color: 'amber',
+    members: ['Artisans', 'Skilled workers', 'Entrepreneurs', 'Informal sector participants'],
+    benefits: [
+      'Savings & loan access',
+      'Annual dividends',
+      'Empowerment assets',
+      'Training & certification',
+      'Welfare assistance',
+    ],
+  },
+] as const;
+
+const topBenefits = [
+  { icon: Wallet, text: 'Access to low-interest cooperative loans' },
+  { icon: Gift, text: 'Participation in empowerment programs' },
+  { icon: TrendingUp, text: 'Cooperative dividends and surplus sharing' },
+  { icon: Award, text: 'Training, certification & skills development' },
+  { icon: Shield, text: 'Health insurance & welfare schemes' },
+  { icon: Globe, text: 'International partnerships & exchange programs' },
+] as const;
 
 export default function MembershipPage() {
   return (
-    <>
-      <section style={{ background: 'linear-gradient(135deg, #061c10 0%, #0D4A2F 60%, #1a6e45 100%)', padding: '120px 0 80px', textAlign: 'center' }}>
-        <div className="container">
-          <span className="section-tag" style={{ background: 'rgba(201,150,43,0.2)', color: '#f0c84e' }}>Membership</span>
-          <h1 className="display-2 section-title" style={{ color: 'white', textAlign: 'center' }}>Categories & Benefits</h1>
-          <p className="section-subtitle" style={{ color: 'rgba(255,255,255,0.75)', margin: '0 auto' }}>Join the cooperative movement shaping Nigeria’s economic future.</p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-white">
+      <Navbar />
 
-      {/* Categories */}
-      <section className="section" style={{ background: 'var(--gray-50)' }}>
-        <div className="container">
-          <h2 className="display-2" style={{ textAlign: 'center', color: 'var(--primary-dark)', marginBottom: '48px' }}>Membership Categories</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-            {categories.map(c => {
-              const Icon = c.icon;
-              return (
-                <div key={c.title} className="card">
-                  <div style={{ width: '56px', height: '56px', background: 'var(--primary-soft)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                    <Icon size={28} color="var(--primary)" />
+      <main className="pt-20">
+        <section className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 py-24">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Membership</h1>
+              <p className="text-xl text-emerald-100 max-w-3xl mx-auto">
+                Join Nigeria&apos;s largest cooperative network and unlock your economic potential
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold mb-4">
+                Categories
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Membership Categories
+              </h2>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-3 gap-8">
+              {membershipCategories.map((category, index) => (
+                <motion.div
+                  key={category.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.15 }}
+                  className={`rounded-2xl p-8 border-2 ${
+                    category.color === 'emerald'
+                      ? 'bg-emerald-50 border-emerald-200'
+                      : category.color === 'blue'
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-amber-50 border-amber-200'
+                  }`}
+                >
+                  <div
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${
+                      category.color === 'emerald'
+                        ? 'bg-emerald-600'
+                        : category.color === 'blue'
+                        ? 'bg-blue-600'
+                        : 'bg-amber-600'
+                    }`}
+                  >
+                    <category.icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="h4" style={{ marginBottom: '16px' }}>{c.title}</h3>
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {c.items.map(item => (
-                      <li key={item} style={{ display: 'flex', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        <div style={{ width: '6px', height: '6px', background: 'var(--secondary)', borderRadius: '50%', marginTop: '8px', flexShrink: 0 }} /> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">{category.title}</h3>
 
-      {/* Benefits */}
-      <section className="section">
-        <div className="container">
-          <h2 className="display-2" style={{ textAlign: 'center', color: 'var(--primary-dark)', marginBottom: '48px' }}>Top Member Benefits</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', maxWidth: '1000px', margin: '0 auto' }}>
-            {[
-              'Access to low-interest cooperative loans',
-              'Participation in empowerment programs',
-              'Cooperative dividends and surplus sharing',
-              'Bulk purchasing and shared infrastructure',
-              'Cooperative Development Fund (CDF) access',
-              'Training, certification & skills development',
-              'Health insurance & welfare schemes',
-              'Digital ID & cooperative wallet',
-              'Policy advocacy & national representation',
-              'Youth, women & PWD inclusion programs',
-              'International partnerships & exchange programs',
-            ].map((b, i) => (
-              <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'white' }}>
-                <CheckCircle size={20} color="var(--primary)" />
-                <span style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-primary)' }}>{b}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                  <div className="mb-6">
+                    <p
+                      className={`text-sm font-semibold mb-3 ${
+                        category.color === 'emerald'
+                          ? 'text-emerald-700'
+                          : category.color === 'blue'
+                          ? 'text-blue-700'
+                          : 'text-amber-700'
+                      }`}
+                    >
+                      Who can join:
+                    </p>
+                    <ul className="space-y-2">
+                      {category.members.map((member) => (
+                        <li key={member} className="flex items-start gap-2">
+                          <Check
+                            className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                              category.color === 'emerald'
+                                ? 'text-emerald-600'
+                                : category.color === 'blue'
+                                ? 'text-blue-600'
+                                : 'text-amber-600'
+                            }`}
+                          />
+                          <span className="text-gray-700 text-sm">{member}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-      {/* Stakeholders */}
-      <section className="section" style={{ background: 'var(--primary-dark)', color: 'white' }}>
-        <div className="container">
-          <h2 className="display-2" style={{ textAlign: 'center', color: 'white', marginBottom: '48px' }}>Stakeholder Benefit Structure</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
-            {stakeholderBenefits.map(sb => (
-              <div key={sb.title} style={{ background: 'rgba(255,255,255,0.05)', padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <h3 className="h4" style={{ marginBottom: '24px', color: 'var(--secondary)' }}>{sb.title}</h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {sb.items.map(item => (
-                    <li key={item} style={{ display: 'flex', gap: '12px', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem' }}>
-                      <CheckCircle size={16} color="var(--secondary)" style={{ flexShrink: 0, marginTop: '2px' }} /> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+                  <div className="pt-6 border-t border-gray-200">
+                    <p
+                      className={`text-sm font-semibold mb-3 ${
+                        category.color === 'emerald'
+                          ? 'text-emerald-700'
+                          : category.color === 'blue'
+                          ? 'text-blue-700'
+                          : 'text-amber-700'
+                      }`}
+                    >
+                      Benefits:
+                    </p>
+                    <ul className="space-y-2">
+                      {category.benefits.map((benefit) => (
+                        <li key={benefit} className="flex items-start gap-2">
+                          <Star className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-          
-          <div style={{ textAlign: 'center', marginTop: '64px' }}>
-            <Link href="/register/member" className="btn btn-secondary btn-lg">Join us via Registration Portal <ArrowRight size={18} /></Link>
+        </section>
+
+        <section className="py-20 bg-emerald-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Top Member Benefits</h2>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {topBenefits.map((benefit, index) => (
+                <motion.div
+                  key={benefit.text}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-center gap-4 bg-white/10 rounded-xl p-4"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-white text-sm">{benefit.text}</span>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-    </>
+        </section>
+
+        <section className="py-20 bg-gradient-to-r from-emerald-600 to-teal-600">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <UserPlus className="h-16 w-16 text-white/80 mx-auto mb-6" />
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Join?</h2>
+              <p className="text-xl text-emerald-100 mb-8">Start your membership journey today</p>
+              <Link
+                href="/register/member"
+                className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-base font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
+              >
+                Start Your Application
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

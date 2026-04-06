@@ -14,10 +14,12 @@ import {
     LocationOn as MapIcon,
   CameraAlt as CameraIcon,
   Shield as ShieldIcon,
-  Notifications as BellIcon,
+  Notifications as NotificationsIcon,
   Lock as LockIcon,
   Save as SaveIcon,
   QrCode as QrCodeIcon,
+  Work as WorkIcon,
+  AccountBalanceWallet as SavingsIcon,
   VerifiedUser as VerifiedIcon
 } from "@mui/icons-material";
 import api from '@/lib/api';
@@ -27,12 +29,17 @@ export default function MemberProfilePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [tabValue, setTabValue] = useState(0);
 
     // Form states
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [address, setAddress] = useState('');
+    const [formData, setFormData] = useState({
+        firstName: '', lastName: '', phoneNumber: '', address: '',
+        gender: '', dateOfBirth: '', maritalStatus: '', stateOfOrigin: '', nationality: '',
+        occupation: '', educationalQualification: '',
+        extOrgName: '', extPosition: '', extStateChapter: '',
+        savingsFrequency: '', proposedSavingsAmount: '', empowermentInterest: '',
+        nokName: '', nokRelationship: '', nokPhone: '', nokAddress: '', nokEmail: ''
+    });
 
     useEffect(() => {
         fetchProfile();
@@ -40,14 +47,38 @@ export default function MemberProfilePage() {
 
     const fetchProfile = async () => {
         try {
-            const res = await api.get('/profile');
+            const res = await api.get('/auth/profile');
             const data = res.data;
             setProfile(data);
+            
             const names = (data.name || '').split(' ');
-            setFirstName(names[0] || '');
-            setLastName(names.slice(1).join(' ') || '');
-            setPhoneNumber(data.phoneNumber || '');
-            setAddress(data.address || '');
+            const member = data.memberProfile || {};
+            const nok = member.nextOfKin || {};
+
+            setFormData({
+                firstName: data.firstName || names[0] || '',
+                lastName: data.lastName || names.slice(1).join(' ') || '',
+                phoneNumber: data.phone || data.phoneNumber || '',
+                address: member.address || '',
+                gender: member.gender || '',
+                dateOfBirth: member.dateOfBirth ? new Date(member.dateOfBirth).toISOString().split('T')[0] : '',
+                maritalStatus: member.maritalStatus || '',
+                stateOfOrigin: member.stateOfOrigin || '',
+                nationality: member.nationality || '',
+                occupation: member.occupation || '',
+                educationalQualification: member.educationalQualification || '',
+                extOrgName: member.extOrgName || '',
+                extPosition: member.extPosition || '',
+                extStateChapter: member.extStateChapter || '',
+                savingsFrequency: member.savingsFrequency || '',
+                proposedSavingsAmount: member.proposedSavingsAmount || '',
+                empowermentInterest: member.empowermentInterest || '',
+                nokName: nok.name || '',
+                nokRelationship: nok.relationship || '',
+                nokPhone: nok.phone || '',
+                nokAddress: nok.address || '',
+                nokEmail: nok.email || ''
+            });
         } catch (e) {
             console.error(e);
         } finally {
@@ -55,18 +86,24 @@ export default function MemberProfilePage() {
         }
     };
 
+    const handleInputChange = (e: any) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
     const handleSaveProfile = async () => {
         setSaving(true);
         setMessage(null);
         try {
-            await api.put('/profile', {
-                name: `${firstName} ${lastName}`.trim(),
-                phoneNumber,
-                address
+            await api.patch('/auth/profile', {
+                ...formData,
+                name: `${formData.firstName} ${formData.lastName}`.trim()
             });
-            setMessage({ type: 'success', text: 'Your profile has been updated successfully!' });
+            setMessage({ type: 'success', text: 'Progress saved successfully!' });
+            // Refresh to get any server-side computed updates
+            fetchProfile();
         } catch (e) {
-            setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+            setMessage({ type: 'error', text: 'Failed to save progress. Please try again.' });
         } finally {
             setSaving(false);
         }
@@ -80,11 +117,36 @@ export default function MemberProfilePage() {
         );
     }
 
+    const sections = [
+        { label: 'Personal Information', icon: <PersonIcon /> },
+        { label: 'Contact & Next of Kin', icon: <PhoneIcon /> },
+        { label: 'Occupation & Education', icon: <WorkIcon /> },
+        { label: 'Savings & Empowerment', icon: <SavingsIcon /> }
+    ];
+
     return (
         <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b' }}>Member Profile</Typography>
-                <Typography sx={{ color: '#64748b' }}>View and manage your membership details.</Typography>
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b' }}>Member Profile</Typography>
+                    <Typography sx={{ color: '#64748b' }}>Complete your profile to access all features. You can save your progress at any point.</Typography>
+                </Box>
+                <Button
+                    variant="contained"
+                    startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    sx={{ 
+                        bgcolor: '#004d40', 
+                        '&:hover': { bgcolor: '#065f46' },
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 700,
+                        px: 4, py: 1.2
+                    }}
+                >
+                    Save Progress
+                </Button>
             </Box>
 
             {message && (
@@ -94,104 +156,203 @@ export default function MemberProfilePage() {
             )}
 
             <Grid container spacing={4}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Card sx={{ p: 4, borderRadius: '32px', textAlign: 'center', border: '1px solid #f1f5f9', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}>
-                        <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
-                            <Badge
-                                overlap="circular"
-                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                badgeContent={
-                                    <IconButton size="small" sx={{ bgcolor: '#004d40', color: 'white', border: '4px solid white' }}>
-                                        <CameraIcon fontSize="small" />
-                                    </IconButton>
-                                }
-                            >
-                                <Avatar 
-                                    sx={{ width: 120, height: 120, fontSize: '3rem', fontWeight: 800, bgcolor: '#f0fdf4', color: '#004d40', border: '1px solid #d1fae5' }}
-                                >
-                                    {firstName[0]}{lastName[0]}
-                                </Avatar>
-                            </Badge>
-                        </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 900, color: '#1e293b' }}>{firstName} {lastName}</Typography>
-                        <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 700, mb: 1.5 }}>Member ID: {profile?.memberId || 'N/A'}</Typography>
-                        <Chip 
-                            icon={<VerifiedIcon sx={{ fontSize: '1rem !important' }} />}
-                            label="Active Member" 
-                            size="small" 
-                            sx={{ bgcolor: '#d1fae5', color: '#065f46', fontWeight: 800, px: 1 }} 
-                        />
+                <Grid size={{ xs: 12, md: 3 }}>
+                    <Card sx={{ p: 2, borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}>
+                        <Tabs
+                            orientation="vertical"
+                            value={tabValue}
+                            onChange={(_, v) => setTabValue(v)}
+                            sx={{
+                                '& .MuiTab-root': {
+                                    alignItems: 'flex-start',
+                                    textAlign: 'left',
+                                    borderRadius: '12px',
+                                    mb: 1,
+                                    minHeight: '48px',
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    color: '#64748b',
+                                },
+                                '& .Mui-selected': {
+                                    bgcolor: '#f0fdf4',
+                                    color: '#004d40 !important'
+                                },
+                                '& .MuiTabs-indicator': { display: 'none' }
+                            }}
+                        >
+                            {sections.map((s, i) => (
+                                <Tab key={i} label={s.label} icon={s.icon} iconPosition="start" />
+                            ))}
+                        </Tabs>
+                    </Card>
+
+                    <Card sx={{ p: 3, mt: 3, borderRadius: '24px', textAlign: 'center', bgcolor: '#f8fafc' }}>
+                        <Avatar 
+                            sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: '#004d40' }}
+                        >
+                            {formData.firstName[0]}{formData.lastName[0]}
+                        </Avatar>
+                        <Typography sx={{ fontWeight: 800 }}>{formData.firstName} {formData.lastName}</Typography>
+                        <Typography variant="caption" color="textSecondary">Member ID: {profile?.memberProfile?.membershipId || 'PENDING'}</Typography>
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 8 }}>
+                <Grid size={{ xs: 12, md: 9 }}>
                     <Card sx={{ borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}>
                         <CardContent sx={{ p: 4 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                <PersonIcon sx={{ color: '#004d40' }} />
-                                Personal Information
-                            </Typography>
-                            
-                            <Grid container spacing={3}>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextField 
-                                        fullWidth label="First Name" 
-                                        value={firstName}
-                                        onChange={e => setFirstName(e.target.value)}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextField 
-                                        fullWidth label="Last Name" 
-                                        value={lastName}
-                                        onChange={e => setLastName(e.target.value)}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextField 
-                                        fullWidth label="Email Address" 
-                                        value={profile?.email} 
-                                        disabled 
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc' } }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextField 
-                                        fullWidth label="Phone Number" 
-                                        value={phoneNumber}
-                                        onChange={e => setPhoneNumber(e.target.value)}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12 }}>
-                                    <TextField 
-                                        fullWidth multiline rows={3} label="Resident Address" 
-                                        value={address}
-                                        onChange={e => setAddress(e.target.value)}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                    />
-                                </Grid>
-                            </Grid>
+                            {tabValue === 0 && (
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Personal Details</Typography>
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Last Name" name="lastName" value={formData.lastName} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Gender" name="gender" value={formData.gender} onChange={handleInputChange} select SelectProps={{ native: true }}>
+                                                <option value=""></option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} select SelectProps={{ native: true }}>
+                                                <option value=""></option>
+                                                <option value="single">Single</option>
+                                                <option value="married">Married</option>
+                                                <option value="divorced">Divorced</option>
+                                                <option value="widowed">Widowed</option>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Nationality" name="nationality" value={formData.nationality} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <TextField fullWidth label="State of Origin" name="stateOfOrigin" value={formData.stateOfOrigin} onChange={handleInputChange} />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            )}
 
-                            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                            {tabValue === 1 && (
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Contact Info & Next of Kin</Typography>
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Email" value={profile?.email} disabled />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <TextField fullWidth multiline rows={2} label="Resident Address" name="address" value={formData.address} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <Divider sx={{ my: 2 }}>Next of Kin</Divider>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Full Name" name="nokName" value={formData.nokName} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Relationship" name="nokRelationship" value={formData.nokRelationship} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="NOK Phone" name="nokPhone" value={formData.nokPhone} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="NOK Email" name="nokEmail" value={formData.nokEmail} onChange={handleInputChange} />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            )}
+
+                            {tabValue === 2 && (
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Occupation & Education</Typography>
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Occupation" name="occupation" value={formData.occupation} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Qualification" name="educationalQualification" value={formData.educationalQualification} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <Divider sx={{ my: 2 }}>Organization Info (If Applicable)</Divider>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Organization Name" name="extOrgName" value={formData.extOrgName} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Position" name="extPosition" value={formData.extPosition} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <TextField fullWidth label="State Chapter" name="extStateChapter" value={formData.extStateChapter} onChange={handleInputChange} />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            )}
+
+                            {tabValue === 3 && (
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Savings & Empowerment</Typography>
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Savings Frequency" name="savingsFrequency" value={formData.savingsFrequency} onChange={handleInputChange} select SelectProps={{ native: true }}>
+                                                <option value=""></option>
+                                                <option value="daily">Daily</option>
+                                                <option value="weekly">Weekly</option>
+                                                <option value="monthly">Monthly</option>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <TextField fullWidth label="Proposed Savings Amount" name="proposedSavingsAmount" type="number" value={formData.proposedSavingsAmount} onChange={handleInputChange} />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <TextField 
+                                                fullWidth multiline rows={3} 
+                                                label="Empowerment Interests" 
+                                                name="empowermentInterest"
+                                                placeholder="Describe areas you need empowerment or training..."
+                                                value={formData.empowermentInterest} 
+                                                onChange={handleInputChange} 
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            )}
+
+                            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
                                 <Button
-                                    variant="contained"
-                                    startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-                                    onClick={handleSaveProfile}
-                                    disabled={saving}
-                                    sx={{ 
-                                        bgcolor: '#004d40', 
-                                        '&:hover': { bgcolor: '#065f46' },
-                                        borderRadius: '12px',
-                                        textTransform: 'none',
-                                        fontWeight: 700,
-                                        px: 4, py: 1.2
-                                    }}
+                                    disabled={tabValue === 0}
+                                    onClick={() => setTabValue(v => v - 1)}
+                                    sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}
                                 >
-                                    Save Changes
+                                    Previous
                                 </Button>
+                                {tabValue < sections.length - 1 ? (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => setTabValue(v => v + 1)}
+                                        sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#004d40', color: '#004d40' }}
+                                    >
+                                        Next section
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleSaveProfile}
+                                        disabled={saving}
+                                        sx={{ bgcolor: '#004d40', borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}
+                                    >
+                                        Complete & Save
+                                    </Button>
+                                )}
                             </Box>
                         </CardContent>
                     </Card>

@@ -31,7 +31,7 @@ export default function PartnerSettingsPage() {
 
     const fetchProfile = async () => {
         try {
-            const res = await api.get('/profile');
+            const res = await api.get('/auth/profile');
             setProfile(res.data);
         } catch (e) {
             console.error('Failed to fetch profile', e);
@@ -43,7 +43,7 @@ export default function PartnerSettingsPage() {
     const handleSave = async () => {
         setUpdating(true);
         try {
-            await api.put('/profile', profile);
+            await api.patch('/auth/profile', profile);
             alert('Settings updated successfully');
         } catch (e) {
             console.error('Update failed', e);

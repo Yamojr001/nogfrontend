@@ -1,108 +1,312 @@
 'use client';
+
 import { useState } from 'react';
-import { MapPin, Phone, Mail, Send, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { submitContact } from '@/lib/api';
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Clock,
+  Send,
+  CheckCircle,
+  Loader2,
+} from 'lucide-react';
+
+type ContactFormState = {
+  name: string;
+  email: string;
+  phone: string;
+  inquiry_type: string;
+  subject: string;
+  message: string;
+};
+
+const initialForm: ContactFormState = {
+  name: '',
+  email: '',
+  phone: '',
+  inquiry_type: '',
+  subject: '',
+  message: '',
+};
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [formData, setFormData] = useState<ContactFormState>(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const contactInfo = [
+    {
+      icon: MapPin,
+      title: 'Address',
+      content: '4th Floor, Jibril Aminu House, Plot 829, Ralph Shodeinde Street, CBD, Abuja FCT',
+      color: 'emerald',
+    },
+    {
+      icon: Phone,
+      title: 'Phone',
+      content: '08067659229, 09078077777',
+      color: 'blue',
+    },
+    {
+      icon: Mail,
+      title: 'Email',
+      content: 'info@nogalssapexcoop.org',
+      color: 'amber',
+    },
+    {
+      icon: Globe,
+      title: 'Website',
+      content: 'www.nogalssapexcoop.org',
+      color: 'purple',
+    },
+  ] as const;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('loading');
+    setIsSubmitting(true);
+    setError('');
+
     try {
-      await submitContact(form);
-      setStatus('done');
-      setForm({ name: '', email: '', subject: '', message: '' });
-    } catch {
-      setStatus('error');
+      await submitContact({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || formData.inquiry_type || 'General Inquiry',
+        message: formData.message,
+      });
+
+      setIsSubmitted(true);
+      setFormData(initialForm);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to send message. Please try again.';
+      setError(Array.isArray(msg) ? msg.join(', ') : String(msg));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <>
-      <section style={{ background: 'var(--primary-dark)', padding: '160px 0 100px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div className="container reveal">
-          <span className="section-tag" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>Contact Us</span>
-          <h1 className="display-2" style={{ color: 'white', textAlign: 'center', marginBottom: '24px' }}>Get in Touch</h1>
-          <p className="body-lg" style={{ color: 'rgba(255,255,255,0.7)', margin: '0 auto', maxWidth: '800px' }}>Our team is ready to assist you. Reach out through any of the channels below.</p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-white">
+      <Navbar />
 
-      <section className="section">
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: '80px', alignItems: 'start' }}>
-            {/* Contact Info */}
-            <div className="reveal-left">
-              <h2 className="display-2" style={{ marginBottom: '16px', color: 'var(--primary-dark)', fontSize: '2.5rem' }}>Contact Information</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '48px', lineHeight: '1.8', fontSize: '1.1rem' }}>Visit our national headquarters in Abuja or reach out through our official channels below.</p>
-              {[
-                { icon: MapPin, label: 'National Headquarter', value: '4th Floor, Jibril Aminu House, National Commission for Colleges of Education, Plot 829, Ralph Shodeinde Street, Central Business District, Abuja FCT' },
-                { icon: Phone, label: 'Phone', value: '0806 765 9229, 0907 807 7777' },
-                { icon: Mail, label: 'Email', value: 'info@nogalssapexcoop.org \n nogalssapexcooperative@gmail.com' },
-                { icon: Globe, label: 'Website', value: 'www.nogalssapexcoop.org' },
-              ].map((c, i) => {
-                const Icon = c.icon;
-                return (
-                  <div key={c.label} className="reveal" style={{ transitionDelay: `${i * 0.1}s`, display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '32px' }}>
-                    <div style={{ width: '56px', height: '56px', background: 'var(--primary-soft)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--primary-light)' }}>
-                      <Icon size={24} color="var(--primary)" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--primary)', marginBottom: '4px' }}>{c.label}</div>
-                      <div style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: '600', whiteSpace: 'pre-line', lineHeight: '1.5' }}>{c.value}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      <main className="pt-20">
+        <section className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 py-24">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Contact Us</h1>
+              <p className="text-xl text-emerald-100 max-w-3xl mx-auto">
+                Get in touch with NOGALSS National Apex Cooperative Society
+              </p>
+            </motion.div>
+          </div>
+        </section>
 
-            {/* Contact Form */}
-            <div className="reveal-right" style={{ background: 'var(--white)', borderRadius: 'var(--radius-xl)', padding: '64px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xl)' }}>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--primary-dark)', marginBottom: '12px', fontWeight: '800' }}>Send Us a Message</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '40px' }}>Fill out the form and we'll respond as soon as possible.</p>
-              {status === 'done' ? (
-                <div style={{ textAlign: 'center', padding: '60px 24px' }}>
-                  <div style={{ width: '80px', height: '80px', background: 'var(--primary-soft)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid var(--primary-light)' }}>
-                    <Send size={32} color="var(--primary)" />
-                  </div>
-                  <h4 style={{ fontSize: '1.5rem', color: 'var(--primary)', marginBottom: '12px', fontWeight: '700' }}>Message Sent!</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Thank you for reaching out. We'll respond shortly.</p>
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-16">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold mb-4">
+                  Get in Touch
+                </span>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">We&apos;d Love to Hear From You</h2>
+                <p className="text-lg text-gray-600 mb-8">
+                  Whether you want to become a member, partner with us, or have questions, our team is ready to help.
+                </p>
+
+                <div className="space-y-6">
+                  {contactInfo.map((info, index) => (
+                    <motion.div
+                      key={info.title}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-start gap-4"
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          info.color === 'emerald'
+                            ? 'bg-emerald-100 text-emerald-600'
+                            : info.color === 'blue'
+                            ? 'bg-blue-100 text-blue-600'
+                            : info.color === 'amber'
+                            ? 'bg-amber-100 text-amber-600'
+                            : 'bg-purple-100 text-purple-600'
+                        }`}
+                      >
+                        <info.icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">{info.title}</h4>
+                        <p className="text-gray-600">{info.content}</p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                    <div className="form-group">
-                      <label className="form-label" style={{ fontWeight: '700', color: 'var(--primary-dark)' }}>Full Name</label>
-                      <input name="name" type="text" className="form-control" placeholder="Your name" value={form.name} onChange={handleChange} required style={{ borderRadius: '12px', padding: '14px 18px', border: '1.5px solid var(--border)' }} />
+
+                <div className="mt-10 bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Clock className="h-6 w-6 text-emerald-600" />
+                    <h4 className="font-semibold text-gray-900">Office Hours</h4>
+                  </div>
+                  <div className="space-y-2 text-gray-600">
+                    <p>Monday - Friday: 8:00 AM - 5:00 PM</p>
+                    <p>Saturday: 9:00 AM - 1:00 PM</p>
+                    <p>Sunday: Closed</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                {isSubmitted ? (
+                  <div className="bg-emerald-50 rounded-2xl p-12 text-center">
+                    <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle className="h-10 w-10 text-emerald-600" />
                     </div>
-                    <div className="form-group">
-                      <label className="form-label" style={{ fontWeight: '700', color: 'var(--primary-dark)' }}>Email Address</label>
-                      <input name="email" type="email" className="form-control" placeholder="your@email.com" value={form.email} onChange={handleChange} required style={{ borderRadius: '12px', padding: '14px 18px', border: '1.5px solid var(--border)' }} />
-                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Message Sent!</h3>
+                    <p className="text-gray-600 mb-6">Thank you for contacting us. We&apos;ll get back to you soon.</p>
+                    <button
+                      onClick={() => setIsSubmitted(false)}
+                      className="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                    >
+                      Send Another Message
+                    </button>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: '700', color: 'var(--primary-dark)' }}>Subject</label>
-                    <input name="subject" type="text" className="form-control" placeholder="How can we help?" value={form.subject} onChange={handleChange} required style={{ borderRadius: '12px', padding: '14px 18px', border: '1.5px solid var(--border)' }} />
+                ) : (
+                  <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h3>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="name" className="text-sm font-medium text-gray-700">
+                            Full Name *
+                          </label>
+                          <input
+                            id="name"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="Your full name"
+                            className="h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                            Email Address *
+                          </label>
+                          <input
+                            id="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            placeholder="your@email.com"
+                            className="h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                            Phone Number
+                          </label>
+                          <input
+                            id="phone"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="08012345678"
+                            className="h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="inquiry_type" className="text-sm font-medium text-gray-700">
+                            Inquiry Type
+                          </label>
+                          <select
+                            id="inquiry_type"
+                            value={formData.inquiry_type}
+                            onChange={(e) => setFormData({ ...formData, inquiry_type: e.target.value })}
+                            className="h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
+                          >
+                            <option value="">Select type</option>
+                            <option value="membership">Membership Inquiry</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="general">General Inquiry</option>
+                            <option value="support">Support</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="subject" className="text-sm font-medium text-gray-700">
+                          Subject
+                        </label>
+                        <input
+                          id="subject"
+                          value={formData.subject}
+                          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                          placeholder="Message subject"
+                          className="h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="message" className="text-sm font-medium text-gray-700">
+                          Message *
+                        </label>
+                        <textarea
+                          id="message"
+                          required
+                          rows={5}
+                          value={formData.message}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                          placeholder="How can we help you?"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+                      <button
+                        type="submit"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-md h-11 font-medium inline-flex items-center justify-center"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" /> Send Message
+                          </>
+                        )}
+                      </button>
+                    </form>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: '700', color: 'var(--primary-dark)' }}>Message</label>
-                    <textarea name="message" className="form-control" placeholder="Write your message here..." value={form.message} onChange={handleChange} required style={{ borderRadius: '12px', padding: '16px 18px', border: '1.5px solid var(--border)', minHeight: '160px' }} />
-                  </div>
-                  {status === 'error' && <p style={{ color: '#e53e3e', fontSize: '0.9rem', marginBottom: '8px', fontWeight: '600' }}>Something went wrong. Please try again.</p>}
-                  <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }} disabled={status === 'loading'}>
-                    {status === 'loading' ? 'Sending...' : 'Send Message'} <Send size={18} />
-                  </button>
-                </form>
-              )}
+                )}
+              </motion.div>
             </div>
           </div>
-        </div>
-      </section>
-    </>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

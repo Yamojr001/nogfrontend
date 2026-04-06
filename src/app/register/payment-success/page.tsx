@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -12,47 +12,99 @@ export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [verifying, setVerifying] = useState(true);
+  const [statusMessage, setStatusMessage] = useState('Verifying payment status...');
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reference = searchParams.get('reference');
 
   useEffect(() => {
+    let cancelled = false;
+    const MAX_RETRIES = 5;
+
     setMounted(true);
+    retryCountRef.current = 0;
 
     // Refresh profile to pick up payment status
     const verifyPayment = async () => {
+      if (cancelled) return;
+
       try {
+        setStatusMessage('Verifying payment status...');
+
         // If Paystack redirected with a reference, verify immediately on backend.
         if (reference) {
           try {
-            await verifyRegistrationPayment(reference);
-          } catch (err: any) {
-            // Older backend instances may not expose this route yet.
-            if (err?.response?.status !== 404) {
-              throw err;
+            const verifyResult = await verifyRegistrationPayment(reference);
+            const isPaid = verifyResult?.hasPaidRegistrationFee || verifyResult?.isRegistrationFeePaid;
+
+            if (isPaid || verifyResult?.status === 'success') {
+              // Update local storage with new status
+              localStorage.setItem('has_paid_registration_fee', 'true');
+              document.cookie = `has_paid_registration_fee=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`; 
+
+              setStatusMessage('Payment confirmed. Your account is now active.');
+              setVerifying(false);
+              return;
             }
+
+            if (verifyResult?.status === 'failed' || verifyResult?.status === 'abandoned') {
+              setStatusMessage(verifyResult?.message || 'Payment failed. Please try again.');
+              setVerifying(false);
+              return;
+            }
+          } catch (err: any) {
+            console.error("Verification failed:", err);
+            // If the verification call itself fails, fallback to profile check
           }
         }
 
         const profile = await fetchUserProfile();
-        if (profile.memberProfile?.isRegistrationFeePaid) {
-          // Update local storage with new status
-          localStorage.setItem('is_registration_fee_paid', 'true');
+        if (cancelled) return;
+
+        if (profile.hasPaidRegistrationFee || profile.memberProfile?.hasPaidRegistrationFee) {
+          localStorage.setItem('has_paid_registration_fee', 'true');
           localStorage.setItem('user_name', profile.firstName || profile.name || 'Member');
-          
-          // Set cookie for middleware
-          document.cookie = `is_registration_fee_paid=true; path=/; max-age=${60 * 60 * 24}`; 
-          
+          document.cookie = `has_paid_registration_fee=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`; 
+
+          setStatusMessage('Payment confirmed.');
           setVerifying(false);
+          return;
+        }
+
+        // If we reach here, it hasn't been confirmed yet.
+        // Instead of polling 5 times (which feels like waiting for a webhook), 
+        // we'll just give them a "Continue" option after a short delay if it fails.
+        if (retryCountRef.current < 1) { // Only retry once as a safety buffer
+          retryCountRef.current += 1;
+          setStatusMessage(`Confirming status...`);
+          retryTimerRef.current = setTimeout(verifyPayment, 2000);
         } else {
-          // Retry after 3 seconds (webhook might be slightly delayed)
-          setTimeout(verifyPayment, 3000);
+          setStatusMessage('We couldn\'t confirm your status immediately, but if your payment was successful, you can continue to your dashboard.');
+          setVerifying(false);
         }
       } catch (err) {
         console.error("Profile refresh failed:", err);
-        setVerifying(false); // Stop trying but let them try the button
+
+        if (retryCountRef.current < MAX_RETRIES) {
+          retryCountRef.current += 1;
+          setStatusMessage(`Cannot reach server. Retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
+          retryTimerRef.current = setTimeout(verifyPayment, 3000);
+          return;
+        }
+
+        setStatusMessage('Unable to verify payment right now (backend unavailable). You can continue and refresh later.');
+        setVerifying(false);
       }
     };
 
     verifyPayment();
+
+    return () => {
+      cancelled = true;
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
   }, [reference]);
 
   if (!mounted) return null;
@@ -75,6 +127,8 @@ export default function PaymentSuccessPage() {
         <p className="text-lg text-slate-600 mb-10 font-medium leading-relaxed">
           Your registration fee has been confirmed. Welcome to the <strong>National Apex Cooperative Society (NOGALSS)</strong>. Your membership is now fully active.
         </p>
+
+        <p className="text-sm text-slate-500 mb-6">{statusMessage}</p>
 
         <div className="grid gap-4">
           <button 

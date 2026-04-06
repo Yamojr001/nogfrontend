@@ -23,7 +23,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const role = localStorage.getItem('user_role');
       const token = localStorage.getItem('access_token');
-      const isPaid = localStorage.getItem('is_registration_fee_paid') === 'true';
+      const isPaid = localStorage.getItem('has_paid_registration_fee') === 'true';
 
       if (!role || !token) return;
 

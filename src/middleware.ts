@@ -6,9 +6,6 @@ export function middleware(request: NextRequest) {
   
   // 1. Define sensitive prefixes and their authorized roles
   // Logic: All these paths REQUIRE a valid token and matching role
-  const protectedPrefixes = ['/dashboard', '/member', '/admin', '/partner', '/group', '/sub-org', '/wallet', '/transactions'];
-  const isProtected = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
-
   const roleMap: Record<string, string> = {
     super_admin: '/dashboard',
     finance_admin: '/dashboard',
@@ -21,46 +18,61 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get('access_token');
   const role = request.cookies.get('user_role');
+  const hasPaidCookie = request.cookies.get('has_paid_registration_fee');
   const roleVal = role?.value || '';
+  const hasPaidRegistrationFee = hasPaidCookie?.value === 'true';
 
-  // 2. Authentication Check: Redirect to login if no token on protected routes
-  if (isProtected && !token) {
+  // 2. Authentication Check: Redirect to login if no token
+  if (!token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('from', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   // 3. Authorization (RBAC) Check
-  if (isProtected && token) {
-    // If role is missing or invalid, force logout/redirect
-    const allowedPathPrefix = roleMap[roleVal];
-    
-    if (!allowedPathPrefix) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('access_token');
-      response.cookies.delete('user_role');
-      return response;
+  const allowedPathPrefix = roleMap[roleVal];
+  
+  // If role is missing or invalid, force logout/redirect
+  if (!allowedPathPrefix) {
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete('access_token');
+    response.cookies.delete('user_role');
+    return response;
+  }
+
+  // Member payment gate at edge level: unpaid members can only access /member/payment.
+  if (roleVal === 'member') {
+    if (!hasPaidRegistrationFee && pathname !== '/member/payment') {
+      return NextResponse.redirect(new URL('/member/payment', request.url));
     }
 
-    // Check if the current pathname is unauthorized for this role
-    // Special Case: Allow access to paths that start with the role's primary prefix
-    const isAuthorized = pathname.startsWith(allowedPathPrefix);
-    
-    if (!isAuthorized) {
-      // Redirect to their own dashboard instead of login (they ARE authenticated, just lost)
-      return NextResponse.redirect(new URL(allowedPathPrefix, request.url));
+    if (hasPaidRegistrationFee && pathname === '/member/payment') {
+      return NextResponse.redirect(new URL('/member', request.url));
     }
   }
 
-  // 4. Prevent logged-in users from accessing login page (Redirect to dashboard)
-  if (pathname === '/login' && token && roleVal) {
-    const target = roleMap[roleVal] || '/dashboard';
-    return NextResponse.redirect(new URL(target, request.url));
+  // Check if the current pathname is authorized for this role
+  // Special Case: Allow access to paths that start with the role's primary prefix
+  const isAuthorized = pathname.startsWith(allowedPathPrefix);
+  
+  if (!isAuthorized) {
+    // Redirect to their own dashboard instead of login (they ARE authenticated, just lost)
+    return NextResponse.redirect(new URL(allowedPathPrefix, request.url));
   }
 
   return NextResponse.next();
 }
 
+// 4. Specific Matcher: ONLY run context-bound logic for protected routes
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/dashboard/:path*', 
+    '/member/:path*', 
+    '/admin/:path*', 
+    '/partner/:path*', 
+    '/group/:path*', 
+    '/sub-org/:path*', 
+    '/wallet/:path*', 
+    '/transactions/:path*'
+  ],
 };

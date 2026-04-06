@@ -35,14 +35,24 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     }
     
     const storedRole = localStorage.getItem('user_role') || 'member';
-    const isPaid = localStorage.getItem('is_registration_fee_paid') === 'true';
+    const hasPaid = localStorage.getItem('has_paid_registration_fee') === 'true';
+    const isProfileComplete = localStorage.getItem('is_profile_complete') === 'true';
     
     setRole(storedRole);
     setUserName(localStorage.getItem('user_name') || 'Member');
 
-    // Enforce payment for members
-    if (storedRole === 'member' && !isPaid && pathname !== '/member/payment') {
-      router.push('/member/payment');
+    // Enforce payment for members (Strict blocking)
+    if (storedRole === 'member') {
+      if (!hasPaid && pathname !== '/member/payment') {
+        router.push('/member/payment');
+      } else if (hasPaid && !isProfileComplete && pathname !== '/member/profile') {
+        // Only redirect to profile if not already there and if paid
+        // router.push('/member/profile'); 
+        // For now, let's just make it a soft prompt or a strict redirect if needed.
+        // The user said: "prompted to pay first then update the the profile next"
+        // I'll make it a strict redirect for now to ensure data is collected.
+        router.push('/member/profile');
+      }
     }
   }, [router, pathname]);
 

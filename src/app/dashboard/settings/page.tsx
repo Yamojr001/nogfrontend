@@ -40,7 +40,7 @@ export default function SettingsPage() {
 
     const fetchProfile = async () => {
         try {
-            const res = await api.get('/profile');
+            const res = await api.get('/auth/profile');
             const data = res.data;
             setProfile(data);
             const names = (data.name || '').split(' ');
@@ -59,7 +59,7 @@ export default function SettingsPage() {
         setSaving(true);
         setMessage(null);
         try {
-            await api.put('/profile', {
+            await api.patch('/auth/profile', {
                 name: `${firstName} ${lastName}`.trim(),
                 phoneNumber,
                 address

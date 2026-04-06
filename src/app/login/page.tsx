@@ -39,8 +39,12 @@ export default function LoginPage() {
         document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
         
         // Store payment status
-        localStorage.setItem('is_registration_fee_paid', String(data.isRegistrationFeePaid));
-        document.cookie = `is_registration_fee_paid=${data.isRegistrationFeePaid}; path=/; max-age=86400; SameSite=Lax`;
+        localStorage.setItem('has_paid_registration_fee', String(data.hasPaidRegistrationFee));
+        document.cookie = `has_paid_registration_fee=${data.hasPaidRegistrationFee}; path=/; max-age=86400; SameSite=Lax`;
+
+        // Store profile status
+        localStorage.setItem('is_profile_complete', String(data.isProfileComplete));
+        document.cookie = `is_profile_complete=${data.isProfileComplete}; path=/; max-age=86400; SameSite=Lax`;
 
         try {
           const payload = JSON.parse(atob(data.access_token.split('.')[1]));
@@ -53,9 +57,14 @@ export default function LoginPage() {
 
       const role = getRoleFromToken();
       
-      // Check payment status for members
-      if (role === 'member' && data.isRegistrationFeePaid === false) {
+      // Check payment status for members (Block access until paid)
+      if (role === 'member' && (data.hasPaidRegistrationFee === false || data.message === 'PAYMENT_REQUIRED')) {
         router.push('/member/payment');
+        return;
+      }
+      
+      if (role === 'member' && data.isProfileComplete === false) {
+        router.push('/member/profile');
         return;
       }
       const roleMap: Record<string, string> = {
