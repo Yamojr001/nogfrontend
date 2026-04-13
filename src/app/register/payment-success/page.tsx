@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchUserProfile, verifyRegistrationPayment } from '@/lib/api';
+import { fetchUserProfile, verifyRegistrationPayment, completeRegistration } from '@/lib/api';
 
 function PaymentSuccessContent() {
   const [mounted, setMounted] = useState(false);
@@ -30,30 +30,50 @@ function PaymentSuccessContent() {
       try {
         setStatusMessage('Verifying payment status...');
 
-        // If Paystack redirected with a reference, verify immediately on backend.
+        // If Paystack redirected with a reference, verify and register on backend.
         if (reference) {
           try {
-            const verifyResult = await verifyRegistrationPayment(reference);
-            const isPaid = verifyResult?.hasPaidRegistrationFee || verifyResult?.isRegistrationFeePaid;
+            const pendingData = localStorage.getItem('pending_registration');
+            if (pendingData) {
+               const data = JSON.parse(pendingData);
+               setStatusMessage('Finalizing your registration...');
+               const result = await completeRegistration({ data, reference });
+               
+               if (result.status === 'success') {
+                  // Registration complete! Log them in if tokens provided, or redirect to login
+                  localStorage.removeItem('pending_registration');
+                  
+                  if (result.data?.access_token) {
+                    localStorage.setItem('access_token', result.data.access_token);
+                    localStorage.setItem('refresh_token', result.data.refresh_token);
+                    localStorage.setItem('has_paid_registration_fee', 'true');
+                    document.cookie = `has_paid_registration_fee=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+                  }
 
-            if (isPaid || verifyResult?.status === 'success') {
-              // Update local storage with new status
-              localStorage.setItem('has_paid_registration_fee', 'true');
-              document.cookie = `has_paid_registration_fee=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`; 
-
-              setStatusMessage('Payment confirmed. Your account is now active.');
-              setVerifying(false);
-              return;
-            }
-
-            if (verifyResult?.status === 'failed' || verifyResult?.status === 'abandoned') {
-              setStatusMessage(verifyResult?.message || 'Payment failed. Please try again.');
-              setVerifying(false);
-              return;
+                  setStatusMessage('Account created and payment confirmed. Welcome aboard!');
+                  setVerifying(false);
+                  return;
+               } else {
+                  setStatusMessage(result.message || 'Registration failed. Please contact support.');
+                  setVerifying(false);
+                  return;
+               }
+            } else {
+              // Fallback for when data is missing from cache (maybe they cleared it?)
+              const verifyResult = await verifyRegistrationPayment(reference);
+              const isPaid = verifyResult?.hasPaidRegistrationFee || verifyResult?.isRegistrationFeePaid;
+              
+              if (isPaid) {
+                setStatusMessage('Payment confirmed. Please log in to your account.');
+                setVerifying(false);
+                return;
+              }
             }
           } catch (err: any) {
-            console.error("Verification failed:", err);
-            // If the verification call itself fails, fallback to profile check
+            console.error("Verification/Registration failed:", err);
+            setStatusMessage(err?.response?.data?.message || "Registration failed. Please check your details or contact support.");
+            setVerifying(false);
+            return;
           }
         }
 

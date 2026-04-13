@@ -32,12 +32,18 @@ api.interceptors.response.use(
           localStorage.setItem('access_token', access_token);
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
           return api(originalRequest);
-        } catch {
+        } catch (refreshErr) {
           // Refresh failed - clear session
+          console.error('Refresh token expired or invalid', refreshErr);
+          localStorage.clear();
+          window.location.href = '/login';
         }
+      } else {
+        // No refresh token - just clear and redirect if it's not a public page
+        // But for registration, we don't want to redirect to login if they are just visiting public routes
+        // For now, let's just NOT loop.
+        localStorage.removeItem('access_token');
       }
-      localStorage.clear();
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -129,6 +135,31 @@ export async function initiateRegistrationPayment() {
 export async function verifyRegistrationPayment(reference: string) {
   const { data } = await api.post('/auth/register/verify-payment', { reference });
   return data;
+}
+
+export async function initExternalRegistrationPayment(email: string) {
+  const { data } = await api.post('/auth/register/init-payment', { email });
+  return data;
+}
+
+export async function completeRegistration(data: any, reference: string) {
+  const response = await api.post('/auth/register/complete', { data, reference });
+  return response.data;
+}
+
+export async function buyToken(data: { name: string, email: string, phone: string, redirectUrl: string }) {
+  const response = await api.post('/tokens/buy', data);
+  return response.data;
+}
+
+export async function completeTokenPurchase(paymentReference: string) {
+  const response = await api.get(`/tokens/complete?paymentReference=${paymentReference}`);
+  return response.data;
+}
+
+export async function verifyToken(code: string) {
+  const response = await api.get(`/tokens/verify/${code}`);
+  return response.data;
 }
 
 // ─── Contact ────────────────────────────────────────────────────────────────
@@ -363,5 +394,86 @@ export async function fetchProgramApplications() {
   const { data } = await api.get('/empowerment/applications');
   return data;
 }
+
+export const api_client = api;
+
+export const api_service = {
+  authLogin,
+  authGoogleLogin,
+  authLogout,
+  getCurrentUser,
+  fetchUserProfile,
+  refreshAccessToken,
+  getRoleFromToken,
+  registerMember,
+  registerUser: registerMember, // Added alias for backward compatibility
+  resolveOrgCode,
+  registerOrganisation,
+  fetchHierarchyOrganisations,
+  fetchHierarchySubOrgs,
+  fetchHierarchyGroups,
+  fetchBanks,
+  initiateRegistrationPayment,
+  verifyRegistrationPayment,
+  initExternalRegistrationPayment,
+  completeRegistration,
+  buyToken,
+  completeTokenPurchase,
+  verifyToken,
+  submitContact,
+  subscribeNewsletter,
+  fetchNews,
+  fetchSubOrgDashboard,
+  fetchSubOrgMembers,
+  fetchSubOrgFinances,
+  fetchPartnerDashboard,
+  fetchPartnerMembers,
+  fetchPartnerFinances,
+  fetchPartnerApprovals,
+  fetchApexDashboardStats,
+  fetchApexDashboardCharts,
+  fetchApexDashboardAlerts,
+  approveRequest,
+  rejectRequest,
+  fetchAdminTickets,
+  fetchAdminSupportStats,
+  respondToTicket,
+  assignTicket,
+  fetchGroupDashboard,
+  fetchGroupMembers,
+  fetchGroupFinances,
+  fetchGroupLoans,
+  syncGroupData,
+  markMemberAttendance,
+  fetchMemberDashboard,
+  fetchMemberProfile,
+  fetchMemberSavings,
+  fetchMemberLoans,
+  fetchMemberTickets,
+  createSupportTicket,
+  fetchMemberWallet,
+  fetchMemberTransactions,
+  fetchMemberNotifications,
+  applyLoan,
+  payLoan,
+  fetchUserTourStatus,
+  completeUserTour,
+  resetUserTour,
+  updateUserTourStep,
+  fetchEmpowermentPrograms,
+  applyToProgram,
+  fetchProgramApplications,
+};
+
+// For backward compatibility and the specific "export api" error
+export const api_object = {
+  ...api_service,
+  registerUser: registerMember,
+  verifyToken,
+  buyToken,
+  completeTokenPurchase,
+};
+
+export { api_object as api, registerMember as registerUser };
 
 export default api;
