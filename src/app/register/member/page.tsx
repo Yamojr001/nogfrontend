@@ -70,6 +70,20 @@ export default function MemberRegistrationPage() {
       setVerifiedToken(storedToken);
       sessionStorage.removeItem('verified_reg_token');
     }
+
+    // Pre-fill empowerments from Buy Token page
+    const pendingEmp = sessionStorage.getItem('pendingEmpowerments');
+    if (pendingEmp) {
+      try {
+        const parsed = JSON.parse(pendingEmp);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setForm(prev => ({ ...prev, empowermentInterest: parsed }));
+        }
+      } catch (e) {
+        console.error("Failed to parse pending empowerments:", e);
+      }
+      sessionStorage.removeItem('pendingEmpowerments');
+    }
   }, []);
 
   const toggleEmpowerment = (label: string) => {

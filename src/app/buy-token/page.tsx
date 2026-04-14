@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Loader2, ArrowLeft, ShoppingCart, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { EMPOWERMENT_CATEGORIES } from '@/constants/empowerment';
 import { api } from '@/lib/api';
 import Script from 'next/script';
 import Link from 'next/link';
@@ -20,6 +21,14 @@ export default function BuyTokenPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const [empowermentInterests, setEmpowermentInterests] = useState<string[]>([]);
+  const toggleEmpowerment = (label: string) => {
+    setEmpowermentInterests(prev => {
+      if (prev.includes(label)) return prev.filter(i => i !== label);
+      return [...prev, label];
+    });
   };
 
   const handlePurchase = async (e: React.FormEvent) => {
@@ -48,6 +57,10 @@ export default function BuyTokenPage() {
         isTestMode: true,
         onComplete: function(response: any) {
           // Response usually contains paymentReference. We know our reference.
+          console.log("Monnify payment complete:", response);
+          if (empowermentInterests.length > 0) {
+            sessionStorage.setItem('pendingEmpowerments', JSON.stringify(empowermentInterests));
+          }
           router.push(`/buy-token/success?paymentReference=${paymentReference}`);
         },
         onClose: function(data: any) {
@@ -127,6 +140,37 @@ export default function BuyTokenPage() {
                     onChange={handleInputChange}
                     className="w-full h-14 px-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#008A62]/10 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800"
                   />
+                </div>
+
+                {/* Priority Empowerments UI */}
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Priority Empowerment Interests</h3>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium pb-2">Select the categories of empowerment you are most interested in pursuing as a member.</p>
+                  
+                  <div className="space-y-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                    {EMPOWERMENT_CATEGORIES.map((cat) => (
+                      <div key={cat.id} className="space-y-3">
+                        <span className="text-[11px] font-black text-[#008A62] uppercase tracking-tight">{cat.title}</span>
+                        <div className="grid grid-cols-1 gap-2">
+                          {cat.options.map((opt) => (
+                            <button 
+                              key={opt.id} 
+                              type="button" 
+                              onClick={() => toggleEmpowerment(opt.label)} 
+                              className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left group ${empowermentInterests.includes(opt.label) ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-white border-slate-100 hover:border-emerald-200'}`}
+                            >
+                              <div className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${empowermentInterests.includes(opt.label) ? 'bg-[#008A62] border-[#008A62] text-white' : 'bg-white border-slate-200'}`}>
+                                {empowermentInterests.includes(opt.label) && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                              <span className={`text-[11px] font-bold leading-relaxed ${empowermentInterests.includes(opt.label) ? 'text-emerald-900' : 'text-slate-600'}`}>{opt.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
