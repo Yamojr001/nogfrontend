@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Loader2, ArrowLeft, ShoppingCart, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import Script from 'next/script';
 import Link from 'next/link';
 
 export default function BuyTokenPage() {
@@ -26,27 +27,44 @@ export default function BuyTokenPage() {
     setLoading(true);
     setError(null);
 
+    const paymentReference = `TKN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
     try {
-      const redirectUrl = `${window.location.origin}/buy-token/success`;
-      const res = await api.buyToken({
-        ...formData,
-        redirectUrl,
+      const MonnifySDK = (window as any).MonnifySDK;
+      
+      if (!MonnifySDK) {
+        throw new Error("Payment gateway is still loading. Please try again in a few seconds.");
+      }
+
+      MonnifySDK.initialize({
+        amount: 5500,
+        currency: "NGN",
+        reference: paymentReference,
+        customerFullName: formData.name,
+        customerEmail: formData.email,
+        apiKey: process.env.NEXT_PUBLIC_MONNIFY_API_KEY || "MK_TEST_ACHGGEXYS6",
+        contractCode: process.env.NEXT_PUBLIC_MONNIFY_CONTRACT_CODE || "0710464893",
+        paymentDescription: "NOGALSS Registration Token",
+        isTestMode: true,
+        onComplete: function(response: any) {
+          // Response usually contains paymentReference. We know our reference.
+          router.push(`/buy-token/success?paymentReference=${paymentReference}`);
+        },
+        onClose: function(data: any) {
+          setLoading(false);
+        }
       });
 
-      if (res.status === 'success' && res.checkoutUrl) {
-         window.location.href = res.checkoutUrl;
-      } else {
-        throw new Error('Failed to initialize payment. Please try again.');
-      }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'An error occurred. Please try again.');
-    } finally {
+      setError(err.message || 'An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-[#008A62]/20">
+    <>
+      <Script src="https://sandbox.sdk.monnify.com/plugin/monnify.js" strategy="lazyOnload" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-[#008A62]/20">
       <div className="w-full max-w-lg space-y-6 animate-in fade-in zoom-in duration-500">
         <div className="flex items-center justify-between px-2">
           <Link href="/register/member" className="flex items-center text-xs font-black uppercase tracking-widest text-[#008A62] hover:opacity-70 transition-opacity">
@@ -157,5 +175,6 @@ export default function BuyTokenPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

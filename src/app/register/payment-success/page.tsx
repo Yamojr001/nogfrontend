@@ -37,7 +37,7 @@ function PaymentSuccessContent() {
             if (pendingData) {
                const data = JSON.parse(pendingData);
                setStatusMessage('Finalizing your registration...');
-               const result = await completeRegistration({ data, reference });
+               const result = await completeRegistration(data, reference);
                
                if (result.status === 'success') {
                   // Registration complete! Log them in if tokens provided, or redirect to login
