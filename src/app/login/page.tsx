@@ -17,7 +17,7 @@ const roles = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setError('');
     
     try {
-      const data = await authLogin(email, password);
+      const data = await authLogin(identifier, password);
       
       if (typeof window !== 'undefined') {
         localStorage.setItem('access_token', data.access_token);
@@ -79,7 +79,7 @@ export default function LoginPage() {
       
       router.push(roleMap[role || ''] || '/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Invalid email or password. Please try again.');
+      setError(err?.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -110,15 +110,15 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="w-full space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-[#008A62] ml-1">Email Address</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-[#008A62] ml-1">Email or Phone Number</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#008A62] transition-colors" size={18} />
                 <input 
-                  type="email" 
+                  type="text" 
                   className="w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#008A62]/10 focus:border-[#008A62] outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400" 
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email or phone number"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   required 
                 />
               </div>

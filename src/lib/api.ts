@@ -50,8 +50,8 @@ api.interceptors.response.use(
 );
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
-export async function authLogin(email: string, password: string) {
-  const { data } = await api.post('/auth/login', { email, password });
+export async function authLogin(identifier: string, password: string) {
+  const { data } = await api.post('/auth/login', { identifier, password });
   return data; // { access_token, refresh_token, hasPaidRegistrationFee, message, ... }
 }
 
