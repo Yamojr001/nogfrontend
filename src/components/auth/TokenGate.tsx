@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { Loader2, Ticket, ShoppingCart, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface TokenGateProps {
-  onVerified: (token: string) => void;
+  onVerified: (token: string, data?: any) => void;
   onBuyToken: () => void;
 }
 
@@ -28,7 +28,7 @@ export const TokenGate: React.FC<TokenGateProps> = ({ onVerified, onBuyToken }) 
       if (res) {
         setSuccess(true);
         setTimeout(() => {
-          onVerified(token.toUpperCase());
+          onVerified(token.toUpperCase(), res);
         }, 1500);
       }
     } catch (err: any) {

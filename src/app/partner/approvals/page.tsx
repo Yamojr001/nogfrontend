@@ -76,7 +76,7 @@ export default function PartnerApprovalsPage() {
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, color: '#0c4a6e' }}>Approval Workflow</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 900, color: '#065f46' }}>Approval Workflow</Typography>
           <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>Multi-level approvals for loans, registrations, and disbursements.</Typography>
         </Box>
         {pending.length > 0 && <Chip label={`${pending.length} Pending`} color="warning" sx={{ fontWeight: 800, borderRadius: '12px', fontSize: '0.9rem', px: 1 }} />}
@@ -84,13 +84,13 @@ export default function PartnerApprovalsPage() {
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {[
-          { label: 'Total', value: approvals.length, color: '#0369a1' },
+          { label: 'Total', value: approvals.length, color: '#0f8a62' },
           { label: 'Pending', value: pending.length, color: '#f59e0b' },
           { label: 'Approved', value: approvals.filter(a => a.status === 'approved').length, color: '#10b981' },
           { label: 'Rejected', value: approvals.filter(a => a.status === 'rejected').length, color: '#ef4444' },
         ].map(s => (
           <Grid size={{ xs: 6, md: 3 }} key={s.label}>
-            <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '20px', border: '1px solid #e0f2fe', boxShadow: 'none' }}>
+            <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '20px', border: '1px solid #d1fae5', boxShadow: 'none' }}>
               <Typography variant="h3" sx={{ fontWeight: 900, color: s.color }}>{s.value}</Typography>
               <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>{s.label}</Typography>
             </Paper>
@@ -98,9 +98,9 @@ export default function PartnerApprovalsPage() {
         ))}
       </Grid>
 
-      <Paper sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid #e0f2fe', boxShadow: 'none' }}>
-        <Box sx={{ px: 3, pt: 2, borderBottom: '1px solid #e0f2fe' }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 }, '& .Mui-selected': { color: '#0369a1' }, '& .MuiTabs-indicator': { bgcolor: '#0369a1' } }}>
+      <Paper sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid #d1fae5', boxShadow: 'none' }}>
+        <Box sx={{ px: 3, pt: 2, borderBottom: '1px solid #d1fae5' }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 }, '& .Mui-selected': { color: '#0f8a62' }, '& .MuiTabs-indicator': { bgcolor: '#0f8a62' } }}>
             <Tab label="All" />
             <Tab label={`Pending (${pending.length})`} />
             <Tab label="Approved" />
@@ -119,7 +119,7 @@ export default function PartnerApprovalsPage() {
             <TableBody>
               {filtered.map(a => (
                 <TableRow key={a.id} sx={{ '&:hover': { bgcolor: '#f0f9ff' } }}>
-                  <TableCell sx={{ fontWeight: 700, color: '#0369a1', fontFamily: 'monospace', fontSize: '0.82rem' }}>{a.id}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#0f8a62', fontFamily: 'monospace', fontSize: '0.82rem' }}>{a.id}</TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Typography sx={{ fontSize: '1.2rem' }}>{typeIcon[a.type] || '📋'}</Typography>

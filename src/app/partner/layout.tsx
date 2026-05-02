@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const drawerWidth = 280;
 
 const roleLabels: Record<string, { label: string; color: string }> = {
-  partner_admin: { label: 'Partner Admin', color: '#0369a1' },
+  partner_admin: { label: 'Partner Admin', color: '#0f8a62' },
   partner_officer: { label: 'Partner Officer', color: '#065f46' },
   finance_officer: { label: 'Finance Officer', color: '#7c3aed' },
   auditor: { label: 'Auditor', color: '#b45309' },
@@ -60,13 +60,13 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
   const SidebarContent = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
       <Box sx={{ p: 3.5, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: '#0f8a62', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography sx={{ color: 'white', fontWeight: 900, fontSize: '1.2rem' }}>P</Typography>
         </Box>
         <Box>
-          <Typography sx={{ fontWeight: 900, color: '#0c4a6e', fontSize: '0.95rem', lineHeight: 1.3 }}>{orgName}</Typography>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', bgcolor: '#e0f2fe', borderRadius: '6px', px: 1, py: 0.25, mt: 0.25 }}>
-            <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <Typography sx={{ fontWeight: 900, color: '#065f46', fontSize: '0.95rem', lineHeight: 1.3 }}>{orgName}</Typography>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', bgcolor: '#d1fae5', borderRadius: '6px', px: 1, py: 0.25, mt: 0.25 }}>
+            <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#0f8a62', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {roleLabels[role]?.label || 'Partner'}
             </Typography>
           </Box>
@@ -90,8 +90,8 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
                     borderRadius: '14px',
                     px: 2.5, py: 1.4,
                     transition: 'all 0.2s ease',
-                    bgcolor: isActive ? '#0369a1' : 'transparent',
-                    '&:hover': { bgcolor: isActive ? '#0284c7' : '#f0f9ff' },
+                    bgcolor: isActive ? '#0f8a62' : 'transparent',
+                    '&:hover': { bgcolor: isActive ? '#047857' : '#f0fdf4' },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40, color: isActive ? '#ffffff' : '#64748b', '& .MuiSvgIcon-root': { fontSize: 22 } }}>
@@ -112,9 +112,9 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
       <Box sx={{ p: 2.5, borderTop: '1px solid #f1f5f9' }}>
         <Box
           onClick={handleMenuOpen}
-          sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s', '&:hover': { bgcolor: '#f0f9ff' } }}
+          sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s', '&:hover': { bgcolor: '#f0fdf4' } }}
         >
-          <Avatar sx={{ width: 40, height: 40, bgcolor: '#0369a1', fontSize: '1rem', fontWeight: 800 }}>
+          <Avatar sx={{ width: 40, height: 40, bgcolor: '#0f8a62', fontSize: '1rem', fontWeight: 800 }}>
             {orgName?.[0]?.toUpperCase() || 'P'}
           </Avatar>
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
@@ -133,14 +133,14 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
   );
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: '#f0f9ff', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', bgcolor: '#f0fdf4', minHeight: '100vh' }}>
       <AppBar position="fixed" elevation={0} sx={{
         width: { sm: `calc(100% - ${drawerWidth}px)` },
         ml: { sm: `${drawerWidth}px` },
         bgcolor: 'rgba(240,249,255,0.9)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #bae6fd',
-        color: '#0c4a6e',
+        borderBottom: '1px solid #d1fae5',
+        color: '#065f46',
         zIndex: (theme) => theme.zIndex.drawer - 1,
       }}>
         <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4 } }}>
@@ -150,9 +150,9 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
             </IconButton>
             <Box sx={{
               display: { xs: 'none', md: 'flex' }, alignItems: 'center',
-              bgcolor: '#ffffff', border: '1px solid #bae6fd', borderRadius: '14px',
+              bgcolor: '#ffffff', border: '1px solid #d1fae5', borderRadius: '14px',
               px: 2, py: 0.75, gap: 1, width: 300,
-              '&:focus-within': { borderColor: '#0369a1', boxShadow: '0 0 0 3px rgba(3,105,161,0.1)' }
+              '&:focus-within': { borderColor: '#0f8a62', boxShadow: '0 0 0 3px rgba(15,138,98,0.1)' }
             }}>
               <SearchIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
               <input
@@ -165,14 +165,14 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Tooltip title="Notifications">
-              <IconButton sx={{ bgcolor: '#ffffff', border: '1px solid #bae6fd', borderRadius: '12px', width: 42, height: 42 }}>
+              <IconButton sx={{ bgcolor: '#ffffff', border: '1px solid #d1fae5', borderRadius: '12px', width: 42, height: 42 }}>
                 <Badge badgeContent={3} color="error">
-                  <NotificationsIcon sx={{ fontSize: 20, color: '#0369a1' }} />
+                  <NotificationsIcon sx={{ fontSize: 20, color: '#0f8a62' }} />
                 </Badge>
               </IconButton>
             </Tooltip>
             <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
-              <Avatar sx={{ width: 42, height: 42, bgcolor: '#0369a1', border: '2px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', fontSize: '0.95rem', fontWeight: 800 }}>
+              <Avatar sx={{ width: 42, height: 42, bgcolor: '#0f8a62', border: '2px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', fontSize: '0.95rem', fontWeight: 800 }}>
                 {orgName?.[0]?.toUpperCase() || 'P'}
               </Avatar>
             </IconButton>

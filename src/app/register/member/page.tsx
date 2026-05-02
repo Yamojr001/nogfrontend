@@ -9,7 +9,7 @@ import {
   Phone, Calendar, MapPin, Landmark, Users, ChevronLeft, Send,
   CreditCard, Fingerprint
 } from 'lucide-react';
-import { registerUser, resolveOrgCode, fetchBanks } from '@/lib/api';
+import { registerUser, resolveOrgCode, fetchBanks, updateTokenDraft } from '@/lib/api';
 import { TokenGate } from '@/components/auth/TokenGate';
 import { useRouter } from 'next/navigation';
 import { EMPOWERMENT_CATEGORIES } from '@/constants/empowerment';
@@ -127,18 +127,48 @@ export default function MemberRegistrationPage() {
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const next = () => {
+  const next = async () => {
      const err = validateStep();
      if (err) {
        setError(err);
        return;
      }
      setError('');
-     setStep(s => s + 1);
+     const nextStep = step + 1;
+     setStep(nextStep);
+     
+     // Save draft progress
+     if (verifiedToken) {
+       try {
+         await updateTokenDraft(verifiedToken, form, nextStep);
+       } catch (err) {
+         console.error('Failed to save draft:', err);
+       }
+     }
   };
+
+  const handleTokenVerified = (token: string, data?: any) => {
+    setVerifiedToken(token);
+    if (data && data.draftData) {
+      setForm(prev => ({
+        ...prev,
+        ...data.draftData
+      }));
+      if (data.draftStep > 1) {
+        setStep(data.draftStep);
+      }
+    }
+  };
+
   const back = () => {
     setError('');
-    setStep(s => s - 1);
+    const prevStep = step - 1;
+    setStep(prevStep);
+    
+    // Save draft progress on back too
+    if (verifiedToken) {
+      updateTokenDraft(verifiedToken, form, prevStep).catch(console.error);
+    }
   };
 
   const validateStep = () => {
@@ -225,7 +255,7 @@ export default function MemberRegistrationPage() {
     return (
       <div className="min-h-screen bg-[linear-gradient(135deg,#008A62,#004c35)] flex items-center justify-center p-4">
         <TokenGate 
-          onVerified={(token) => setVerifiedToken(token)} 
+          onVerified={handleTokenVerified} 
           onBuyToken={() => router.push('/buy-token')} 
         />
       </div>

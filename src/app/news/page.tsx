@@ -20,37 +20,6 @@ type NewsItem = {
 
 const categories = ['all', 'news', 'announcement', 'event', 'press_release'] as const;
 
-const sampleNews: NewsItem[] = [
-  {
-    id: 1,
-    title: 'NOGALSS Launches Digital Cooperative Platform',
-    excerpt:
-      'The new platform enables members to access savings, loans, and cooperative services digitally from anywhere in Nigeria.',
-    category: 'announcement',
-    published_at: new Date().toISOString(),
-    featured_image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
-    is_featured: true,
-  },
-  {
-    id: 2,
-    title: 'Annual General Meeting Scheduled for December',
-    excerpt:
-      'All members are invited to participate in the upcoming AGM where key decisions about the cooperative will be made.',
-    category: 'event',
-    published_at: new Date(Date.now() - 86400000).toISOString(),
-    featured_image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
-  },
-  {
-    id: 3,
-    title: 'New Partnership with International Cooperative Alliance',
-    excerpt:
-      'NOGALSS has established a formal partnership with ICA to enhance capacity building and international opportunities.',
-    category: 'news',
-    published_at: new Date(Date.now() - 172800000).toISOString(),
-    featured_image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80',
-  },
-];
-
 function formatDate(value?: string): string {
   if (!value) return '';
   const date = new Date(value);
@@ -111,10 +80,8 @@ export default function NewsPage() {
     };
   }, []);
 
-  const displayNews = useMemo(() => (news.length > 0 ? news : sampleNews), [news]);
-
   const filteredNews = useMemo(() => {
-    return displayNews.filter((item) => {
+    return news.filter((item) => {
       const title = item.title || '';
       const excerpt = item.excerpt || item.content || '';
       const matchesSearch =
@@ -123,7 +90,7 @@ export default function NewsPage() {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [displayNews, searchTerm, selectedCategory]);
+  }, [news, searchTerm, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-white">

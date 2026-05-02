@@ -63,28 +63,28 @@ export default function MembersPage() {
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, color: '#0c4a6e' }}>Member Management</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 900, color: '#065f46' }}>Member Management</Typography>
           <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>Register, manage, and oversee all cooperative members.</Typography>
         </Box>
         <Button startIcon={<AddIcon />} variant="contained" onClick={() => setAddOpen(true)}
-          sx={{ bgcolor: '#0369a1', borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#0284c7' } }}>
+          sx={{ bgcolor: '#0f8a62', borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#047857' } }}>
           Register Member
         </Button>
       </Box>
 
       {loading ? (
-        <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><CircularProgress sx={{ color: '#0369a1' }} /></Box>
+        <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><CircularProgress sx={{ color: '#0f8a62' }} /></Box>
       ) : (
       <>
         <Grid container spacing={3} sx={{ mb: 4 }}>
           {[
-            { label: 'Total Members', value: members.length, color: '#0369a1' },
+            { label: 'Total Members', value: members.length, color: '#0f8a62' },
           { label: 'Active', value: members.filter(m => m.status === 'active').length, color: '#10b981' },
           { label: 'KYC Pending', value: members.filter(m => m.kyc === 'pending').length, color: '#f59e0b' },
           { label: 'Suspended', value: members.filter(m => m.status === 'suspended').length, color: '#ef4444' },
         ].map(s => (
           <Grid size={{ xs: 6, md: 3 }} key={s.label}>
-            <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '20px', border: '1px solid #e0f2fe', boxShadow: 'none' }}>
+            <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '20px', border: '1px solid #d1fae5', boxShadow: 'none' }}>
               <Typography variant="h3" sx={{ fontWeight: 900, color: s.color }}>{s.value}</Typography>
               <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>{s.label}</Typography>
             </Paper>
@@ -92,20 +92,20 @@ export default function MembersPage() {
         ))}
       </Grid>
 
-      <Paper sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid #e0f2fe', boxShadow: 'none' }}>
-        <Box sx={{ px: 3, pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, borderBottom: '1px solid #e0f2fe' }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 }, '& .Mui-selected': { color: '#0369a1' }, '& .MuiTabs-indicator': { bgcolor: '#0369a1' } }}>
+      <Paper sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid #d1fae5', boxShadow: 'none' }}>
+        <Box sx={{ px: 3, pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, borderBottom: '1px solid #d1fae5' }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 }, '& .Mui-selected': { color: '#0f8a62' }, '& .MuiTabs-indicator': { bgcolor: '#0f8a62' } }}>
             <Tab label="All Members" />
             <Tab label={`KYC Pending (${members.filter(m => m.kyc === 'pending').length})`} />
             <Tab label="Suspended" />
           </Tabs>
           <TextField size="small" placeholder="Search members..." value={search} onChange={e => setSearch(e.target.value)}
-            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: '12px', bgcolor: '#f0f9ff' } }}
+            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: '12px', bgcolor: '#f0fdf4' } }}
             sx={{ width: 280 }} />
         </Box>
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: '#f0f9ff' }}>
+            <TableHead sx={{ bgcolor: '#f0fdf4' }}>
               <TableRow>
                 {['Member', 'Branch / Group', 'Wallet', 'Contributions', 'Loans', 'KYC', 'Status', 'Actions'].map(h => (
                   <TableCell key={h} sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</TableCell>
@@ -114,10 +114,10 @@ export default function MembersPage() {
             </TableHead>
             <TableBody>
               {filtered.map(m => (
-                <TableRow key={m.id} sx={{ '&:hover': { bgcolor: '#f0f9ff' } }}>
+                <TableRow key={m.id} sx={{ '&:hover': { bgcolor: '#f0fdf4' } }}>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#0369a1', fontSize: '0.85rem', fontWeight: 700 }}>{m.name[0]}</Avatar>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#0f8a62', fontSize: '0.85rem', fontWeight: 700 }}>{m.name[0]}</Avatar>
                       <Box>
                         <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>{m.name}</Typography>
                         <Typography sx={{ color: '#94a3b8', fontSize: '0.75rem' }}>{m.email}</Typography>
@@ -125,14 +125,14 @@ export default function MembersPage() {
                     </Box>
                   </TableCell>
                   <TableCell sx={{ fontSize: '0.85rem', color: '#64748b' }}>{m.branch}<br /><span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>{m.group}</span></TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#0c4a6e' }}>₦{m.walletBalance.toLocaleString()}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#065f46' }}>₦{m.walletBalance.toLocaleString()}</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>₦{m.contributions.toLocaleString()}</TableCell>
                   <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>{m.loans}</TableCell>
                   <TableCell><Chip label={m.kyc} color={kycColor[m.kyc]} size="small" icon={m.kyc === 'verified' ? <KycIcon sx={{ fontSize: '14px !important' }} /> : undefined} sx={{ borderRadius: '8px', fontWeight: 700, textTransform: 'capitalize' }} /></TableCell>
                   <TableCell><Chip label={m.status} color={statusColor[m.status]} size="small" sx={{ borderRadius: '8px', fontWeight: 700, textTransform: 'capitalize' }} /></TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton size="small" onClick={() => setSelected(m)} sx={{ color: '#0369a1', bgcolor: '#e0f2fe', borderRadius: '8px' }}><ViewIcon fontSize="small" /></IconButton>
+                      <IconButton size="small" onClick={() => setSelected(m)} sx={{ color: '#0f8a62', bgcolor: '#d1fae5', borderRadius: '8px' }}><ViewIcon fontSize="small" /></IconButton>
                       <IconButton size="small" sx={{ color: '#ef4444', bgcolor: '#fff5f5', borderRadius: '8px' }}><SuspendIcon fontSize="small" /></IconButton>
                     </Box>
                   </TableCell>
@@ -154,7 +154,7 @@ export default function MembersPage() {
               <IconButton onClick={() => setSelected(null)}><CloseIcon /></IconButton>
             </Box>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Avatar sx={{ width: 80, height: 80, bgcolor: '#0369a1', mx: 'auto', fontSize: '2rem', mb: 2, fontWeight: 800 }}>{selected.name[0]}</Avatar>
+              <Avatar sx={{ width: 80, height: 80, bgcolor: '#0f8a62', mx: 'auto', fontSize: '2rem', mb: 2, fontWeight: 800 }}>{selected.name[0]}</Avatar>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>{selected.name}</Typography>
               <Typography variant="body2" sx={{ color: '#64748b' }}>{selected.email}</Typography>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', mt: 1.5 }}>
@@ -176,7 +176,7 @@ export default function MembersPage() {
                 <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{value}</Typography>
               </Box>
             ))}
-            <Button fullWidth variant="contained" startIcon={<EditIcon />} sx={{ mt: 3, bgcolor: '#0369a1', borderRadius: '12px', textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: '#0284c7' } }}>Edit Member</Button>
+            <Button fullWidth variant="contained" startIcon={<EditIcon />} sx={{ mt: 3, bgcolor: '#0f8a62', borderRadius: '12px', textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: '#047857' } }}>Edit Member</Button>
             <Button fullWidth startIcon={<SuspendIcon />} sx={{ mt: 1.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: '#ef4444', border: '1px solid #fee2e2' }}>Suspend Account</Button>
           </Box>
         )}
@@ -212,7 +212,7 @@ export default function MembersPage() {
         </DialogContent>
         <DialogActions sx={{ p: 2.5, gap: 1 }}>
           <Button onClick={() => setAddOpen(false)} sx={{ borderRadius: '10px', textTransform: 'none' }}>Cancel</Button>
-          <Button variant="contained" sx={{ bgcolor: '#0369a1', borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#0284c7' } }}>Register</Button>
+          <Button variant="contained" sx={{ bgcolor: '#0f8a62', borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#047857' } }}>Register</Button>
         </DialogActions>
       </Dialog>
     </Box>

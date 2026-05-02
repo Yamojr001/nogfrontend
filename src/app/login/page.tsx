@@ -56,6 +56,14 @@ export default function LoginPage() {
       }
 
       const role = getRoleFromToken();
+
+      if (data.mustChangePassword) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('must_change_password', 'true');
+        }
+        router.push('/change-password');
+        return;
+      }
       
       // Check payment status for members (Block access until paid)
       if (role === 'member' && (data.hasPaidRegistrationFee === false || data.message === 'PAYMENT_REQUIRED')) {

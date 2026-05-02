@@ -42,7 +42,7 @@ export default function PartnerReportsPage() {
 
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-            <CircularProgress sx={{ color: '#004d40' }} />
+            <CircularProgress sx={{ color: '#0f8a62' }} />
         </Box>
     );
 
@@ -51,7 +51,7 @@ export default function PartnerReportsPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                 <Box>
                     <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <PartnerIcon sx={{ fontSize: 40, color: '#004d40' }} />
+                        <PartnerIcon sx={{ fontSize: 40, color: '#0f8a62' }} />
                         Partner Performance Analytics
                     </Typography>
                     <Typography sx={{ color: '#64748b', mt: 0.5 }}>Consolidated insights across all sub-organizations and members.</Typography>
@@ -81,7 +81,7 @@ export default function PartnerReportsPage() {
                     </Card>
                 </Grid>
                 <Grid size={{ xs: 12, md: 3 }}>
-                    <Card sx={{ p: 3, borderRadius: '24px', bgcolor: '#004d40', color: 'white' }}>
+                    <Card sx={{ p: 3, borderRadius: '24px', bgcolor: '#0f8a62', color: 'white' }}>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 800 }}>SETTLED DISBURSEMENTS</Typography>
                         <Typography variant="h4" sx={{ fontWeight: 900, mt: 1 }}>₦8.4M</Typography>
                     </Card>

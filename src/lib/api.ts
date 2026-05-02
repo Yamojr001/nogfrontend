@@ -69,6 +69,11 @@ export async function authLogout() {
   return data;
 }
 
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const { data } = await api.post('/auth/change-password', { currentPassword, newPassword });
+  return data;
+}
+
 export async function getCurrentUser() {
   const { data } = await api.get('/auth/me');
   return data; // { userId, email, role, organisationId }
@@ -104,6 +109,11 @@ export const resolveOrgCode = (code: string) => api.get(`/auth/resolve-code/${co
 // ─── Organisations & Hierarchy ────────────────────────────────────────────────
 export async function registerOrganisation(payload: Record<string, any>) {
   const { data } = await api.post('/organisations', payload);
+  return data;
+}
+
+export async function createSubOrganisation(payload: Record<string, any>) {
+  const { data } = await api.post('/organisations/sub-org', payload);
   return data;
 }
 
@@ -162,6 +172,11 @@ export async function verifyToken(code: string) {
   return response.data;
 }
 
+export async function updateTokenDraft(code: string, draftData: any, draftStep: number) {
+  const response = await api.patch(`/tokens/${code}/draft`, { draftData, draftStep });
+  return response.data;
+}
+
 // ─── Contact ────────────────────────────────────────────────────────────────
 export async function submitContact(payload: { name: string; email: string; subject: string; message: string }) {
   const { data } = await api.post('/contact', payload);
@@ -215,6 +230,15 @@ export async function fetchPartnerFinances(partnerId: number) {
 export async function fetchPartnerApprovals(partnerId: number) {
   const { data } = await api.get(`/partner/${partnerId}/approvals`);
   return data;
+}
+
+export async function fetchAllLoans() {
+  const { data } = await api.get('/loans');
+  return data;
+}
+
+export async function fetchPartnerLoans() {
+  return fetchAllLoans();
 }
 
 // ─── Apex Admin / Dashboard ─────────────────────────────────────────────────
@@ -379,10 +403,95 @@ export const updateUserTourStep = async (step: number, type: string = 'onboardin
   return response.data;
 };
 
+// ─── Bank Accounts ────────────────────────────────────────────────────────
+export async function fetchParallexBanks() {
+  const { data } = await api.get('/parallex/virtual-accounts/banks');
+  return data;
+}
+
+export async function provisionVirtualAccount(payload: any) {
+  const { data } = await api.post('/parallex/virtual-accounts/create', payload);
+  return data;
+}
+
+export async function addBankAccount(payload: {
+  accountName: string;
+  bankName: string;
+  accountNumber: string;
+  bankCode?: string;
+}) {
+  const { data } = await api.post('/bank-accounts', payload);
+  return data;
+}
+
 // ─── Empowerment ──────────────────────────────────────────────────────────
 export async function fetchEmpowermentPrograms() {
   const { data } = await api.get('/empowerment/programs');
   return data;
+}
+
+export type PublicDirectoryItem = {
+  id: string;
+  name: string;
+  code: string;
+  kind: 'Organisation' | 'Sub-Organisation' | 'Unit';
+  hierarchy: string;
+  parentName?: string;
+};
+
+export async function fetchPublicDirectory() {
+  const organisations = await fetchHierarchyOrganisations();
+  const directory: PublicDirectoryItem[] = [];
+
+  for (const org of organisations || []) {
+    const orgName = String(org?.name || 'Unnamed Organisation');
+    directory.push({
+      id: `org-${org.id}`,
+      name: orgName,
+      code: String(org?.code || 'NO-CODE'),
+      kind: 'Organisation',
+      hierarchy: orgName,
+    });
+
+    let subOrgs: any[] = [];
+    try {
+      subOrgs = await fetchHierarchySubOrgs(org.id);
+    } catch {
+      subOrgs = [];
+    }
+
+    for (const subOrg of subOrgs || []) {
+      const subOrgName = String(subOrg?.name || 'Unnamed Sub-Organisation');
+      directory.push({
+        id: `sub-org-${subOrg.id}`,
+        name: subOrgName,
+        code: String(subOrg?.code || 'NO-CODE'),
+        kind: 'Sub-Organisation',
+        hierarchy: `${orgName} → ${subOrgName}`,
+        parentName: orgName,
+      });
+
+      let units: any[] = [];
+      try {
+        units = await fetchHierarchyGroups(subOrg.id);
+      } catch {
+        units = [];
+      }
+
+      for (const unit of units || []) {
+        directory.push({
+          id: `unit-${unit.id}`,
+          name: String(unit?.name || 'Unnamed Unit'),
+          code: String(unit?.code || 'NO-CODE'),
+          kind: 'Unit',
+          hierarchy: `${orgName} → ${subOrgName} → ${String(unit?.name || 'Unnamed Unit')}`,
+          parentName: subOrgName,
+        });
+      }
+    }
+  }
+
+  return directory.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function applyToProgram(programId: number, payload: any) {
@@ -456,6 +565,7 @@ export const api_service = {
   fetchMemberNotifications,
   applyLoan,
   payLoan,
+  fetchPublicDirectory,
   fetchUserTourStatus,
   completeUserTour,
   resetUserTour,
@@ -463,6 +573,7 @@ export const api_service = {
   fetchEmpowermentPrograms,
   applyToProgram,
   fetchProgramApplications,
+  updateTokenDraft,
 };
 
 // For backward compatibility and the specific "export api" error
@@ -472,6 +583,7 @@ export const api_object = {
   verifyToken,
   buyToken,
   completeTokenPurchase,
+  updateTokenDraft,
 };
 
 export { api_object as api, registerMember as registerUser };

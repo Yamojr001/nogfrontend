@@ -6,18 +6,7 @@ import { AccountBalance, People, AttachMoney, AssignmentLate, Add, UploadFile } 
 import { motion } from 'framer-motion';
 import { fetchSubOrgDashboard } from '@/lib/api';
 
-// Mock Data
-const collectionData = [
-  { day: 'Mon', amount: 450000 }, { day: 'Tue', amount: 520000 },
-  { day: 'Wed', amount: 380000 }, { day: 'Thu', amount: 610000 },
-  { day: 'Fri', amount: 750000 }, { day: 'Sat', amount: 200000 }, { day: 'Sun', amount: 150000 }
-];
-
-const pendingApprovals = [
-  { id: 'REQ-01', member: 'John Doe', type: 'Loan Request', amount: 250000, status: 'Pending Partner Approval' },
-  { id: 'REQ-02', member: 'Jane Smith', type: 'Withdrawal', amount: 50000, status: 'Pending Branch Mgr' },
-  { id: 'REQ-03', member: 'Mike Johnson', type: 'Registration', amount: 10000, status: 'Under Review' },
-];
+// Data will be fetched from API
 
 const StatCard = ({ title, value, subtitle, icon, color, delay }: any) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay }}>
@@ -39,12 +28,25 @@ const StatCard = ({ title, value, subtitle, icon, color, delay }: any) => (
 export default function SubOrgDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [collectionData, setCollectionData] = useState<any[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const data = await fetchSubOrgDashboard(1); // Demo branch ID 1
-        setStats(data);
+        const orgIdStr = localStorage.getItem('organisation_id');
+        if (orgIdStr) {
+          const data = await fetchSubOrgDashboard(Number(orgIdStr));
+          setStats(data);
+          
+          // Transform API data into chart data if available
+          if (data?.collectionData) {
+            setCollectionData(data.collectionData);
+          }
+          if (data?.pendingApprovals) {
+            setPendingApprovals(data.pendingApprovals);
+          }
+        }
       } catch (error) {
         console.error("Failed to load dashboard stats", error);
       } finally {
@@ -53,14 +55,24 @@ export default function SubOrgDashboard() {
     }
     loadStats();
   }, []);
-
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress sx={{ color: '#0f766e' }} /></Box>;
+    const [collectionData, setCollectionData] = useState<any[]>([]);
+    const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
+          const orgIdStr = localStorage.getItem('organisation_id');
+          if (!orgIdStr) return;
+
+          const data = await fetchSubOrgDashboard(Number(orgIdStr));
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b', mb: 0.5, letterSpacing: '-0.02em' }}>
+
+          if (Array.isArray(data?.collectionData)) {
+            setCollectionData(data.collectionData);
+          }
+          if (Array.isArray(data?.pendingApprovals)) {
+            setPendingApprovals(data.pendingApprovals);
+          }
             {stats?.branchName || 'Branch Overview'}
           </Typography>
           <Typography sx={{ color: '#64748b', fontSize: '0.95rem' }}>Monitor collections and member activity.</Typography>
@@ -83,7 +95,7 @@ export default function SubOrgDashboard() {
           <StatCard title="Total Collections" value={`₦ ${(stats?.totalCollections || 0).toLocaleString()}`} subtitle="System validated" icon={<AttachMoney />} color="#10b981" delay={0.2} />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard title="Active Loans" value="1" subtitle="₦250k disbursed" icon={<AccountBalance />} color="#f59e0b" delay={0.3} />
+          <StatCard title="Active Loans" value={stats?.activeLoans?.toLocaleString() || "0"} subtitle={stats?.activeLoanSummary || "No active loans"} icon={<AccountBalance />} color="#f59e0b" delay={0.3} />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard title="Pending Approvals" value={stats?.pendingApprovals?.toLocaleString() || "0"} subtitle="Awaiting Partner review" icon={<AssignmentLate />} color="#ef4444" delay={0.4} />

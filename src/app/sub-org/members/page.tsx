@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress,
   Chip, IconButton, Button, Avatar, Dialog, DialogTitle, DialogContent, TextField,
   MenuItem, Drawer, Divider, Tooltip, Grid, Tabs, Tab
 } from '@mui/material';
@@ -9,13 +9,6 @@ import {
   Add, Search, FilterList, MoreVert, CheckCircle, Warning, Cancel, UploadFile
 } from '@mui/icons-material';
 import { fetchSubOrgMembers } from '@/lib/api';
-
-const MOCK_MEMBERS = [
-  { id: 'MBR-001', name: 'Alhaji Yusuf Kano', role: 'Member', joined: 'Jan 15, 2026', kyc: 'verified', balance: 145000, status: 'active', email: 'yusuf@example.com', phone: '08012345678' },
-  { id: 'MBR-002', name: 'Chioma Eze', role: 'Sub-Org Officer', joined: 'Feb 10, 2026', kyc: 'verified', balance: 500000, status: 'active', email: 'chioma@example.com', phone: '08123456789' },
-  { id: 'MBR-003', name: 'Oluwaseun Adebayo', role: 'Member', joined: 'Mar 01, 2026', kyc: 'pending', balance: 25000, status: 'active', email: 'olu@example.com', phone: '09011223344' },
-  { id: 'MBR-004', name: 'Grace Nnamdi', role: 'Member', joined: 'Mar 05, 2026', kyc: 'rejected', balance: 0, status: 'suspended', email: 'grace@example.com', phone: '07099887766' },
-];
 
 const kycColor: any = { verified: 'success', pending: 'warning', rejected: 'error' };
 
@@ -25,33 +18,47 @@ export default function SubOrgMembersPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchSubOrgMembers(1); // Demo branch ID
+        const orgIdStr = localStorage.getItem('organisation_id');
+        if (!orgIdStr) return;
+
+        const data = await fetchSubOrgMembers(Number(orgIdStr));
         if (data) {
           // Map DB columns to our frontend expectations
           const mapped = data.map((m: any) => ({
             id: `MBR-${String(m.id).padStart(3, '0')}`,
-            name: m.user?.name || 'Unknown',
+            name: m.user?.fullName || m.user?.name || 'Unknown',
             role: m.user?.role?.replace('_', ' ')?.toUpperCase() || 'MEMBER',
-            joined: new Date(m.joinedDate).toLocaleDateString(),
+            joined: new Date(m.joinedDate || m.createdAt).toLocaleDateString(),
             kyc: m.kycStatus || 'pending',
             balance: m.wallet?.balance || 0,
-            status: m.status,
+            status: m.status || 'active',
             email: m.user?.email,
             phone: m.user?.phone || 'N/A'
           }));
-          setMembers(mapped.length > 0 ? mapped : MOCK_MEMBERS);
+          setMembers(mapped);
         }
       } catch (error) {
         console.error("Failed to load members", error);
-        setMembers(MOCK_MEMBERS);
+        setMembers([]);
+      } finally {
+        setLoading(false);
       }
     }
     load();
   },[]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   const filteredMembers = members.filter(m =>
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -63,7 +70,7 @@ export default function SubOrgMembersPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: '#1e293b' }}>Member Management</Typography>
-          <Typography sx={{ color: '#64748b', fontSize: '0.9rem' }}>Manage 1,245 active members in your branch.</Typography>
+          <Typography sx={{ color: '#64748b', fontSize: '0.9rem' }}>Manage {members.length} active members in your branch.</Typography>
         </Box>
         <Button onClick={() => setIsAddOpen(true)} variant="contained" startIcon={<Add />} sx={{ bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d9488' }, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}>
           Register Member
