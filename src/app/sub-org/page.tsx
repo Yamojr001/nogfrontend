@@ -55,24 +55,12 @@ export default function SubOrgDashboard() {
     }
     loadStats();
   }, []);
-    const [collectionData, setCollectionData] = useState<any[]>([]);
-    const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          const orgIdStr = localStorage.getItem('organisation_id');
-          if (!orgIdStr) return;
-
-          const data = await fetchSubOrgDashboard(Number(orgIdStr));
+        <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b', mb: 0.5, letterSpacing: '-0.02em' }}>
-
-          if (Array.isArray(data?.collectionData)) {
-            setCollectionData(data.collectionData);
-          }
-          if (Array.isArray(data?.pendingApprovals)) {
-            setPendingApprovals(data.pendingApprovals);
-          }
             {stats?.branchName || 'Branch Overview'}
           </Typography>
           <Typography sx={{ color: '#64748b', fontSize: '0.95rem' }}>Monitor collections and member activity.</Typography>
@@ -88,22 +76,22 @@ export default function SubOrgDashboard() {
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Total Members" value={stats?.totalMembers?.toLocaleString() || "0"} subtitle={`${stats?.activeMembers || 0} active profiles`} icon={<People />} color="#0ea5e9" delay={0.1} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Total Collections" value={`₦ ${(stats?.totalCollections || 0).toLocaleString()}`} subtitle="System validated" icon={<AttachMoney />} color="#10b981" delay={0.2} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Active Loans" value={stats?.activeLoans?.toLocaleString() || "0"} subtitle={stats?.activeLoanSummary || "No active loans"} icon={<AccountBalance />} color="#f59e0b" delay={0.3} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Pending Approvals" value={stats?.pendingApprovals?.toLocaleString() || "0"} subtitle="Awaiting Partner review" icon={<AssignmentLate />} color="#ef4444" delay={0.4} />
         </Grid>
       </Grid>
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid item xs={12} md={8}>
           <Card sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -131,7 +119,7 @@ export default function SubOrgDashboard() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Card sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography sx={{ fontWeight: 700, color: '#1e293b', fontSize: '1.1rem', mb: 3 }}>Requests Tracking</Typography>
