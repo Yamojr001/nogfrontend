@@ -162,8 +162,10 @@ export async function buyToken(data: { name: string, email: string, phone: strin
   return response.data;
 }
 
-export async function completeTokenPurchase(paymentReference: string) {
-  const response = await api.get(`/tokens/complete?paymentReference=${paymentReference}`);
+export async function completeTokenPurchase(paymentReference: string, phone?: string) {
+  const params = new URLSearchParams({ paymentReference });
+  if (phone) params.set('phone', phone);
+  const response = await api.get(`/tokens/complete?${params.toString()}`);
   return response.data;
 }
 

@@ -19,6 +19,7 @@ function BuyTokenSuccessContent() {
   useEffect(() => {
     const status = searchParams.get('status');
     const paymentReference = searchParams.get('paymentReference') || searchParams.get('transactionReference');
+    const phone = searchParams.get('phone') || undefined;
 
     if (status === 'FAILED' || status === 'CANCELLED') {
       setIsCancelled(true);
@@ -35,7 +36,7 @@ function BuyTokenSuccessContent() {
 
     const verify = async () => {
       try {
-        const res = await api.completeTokenPurchase(paymentReference);
+        const res = await api.completeTokenPurchase(paymentReference, phone);
         setTokenData(res);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to verify payment. If you were charged, please contact support.');

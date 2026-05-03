@@ -64,7 +64,7 @@ export default function BuyTokenPage() {
           if (empowermentInterests.length > 0) {
             sessionStorage.setItem('pendingEmpowerments', JSON.stringify(empowermentInterests));
           }
-          router.push(`/buy-token/success?paymentReference=${paymentReference}`);
+          router.push(`/buy-token/success?paymentReference=${paymentReference}&phone=${encodeURIComponent(formData.phone)}`);
         },
         onClose: function(data: any) {
           setLoading(false);
