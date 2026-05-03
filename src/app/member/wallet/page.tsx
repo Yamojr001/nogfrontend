@@ -312,7 +312,7 @@ export default function MemberWallet() {
             Please provide your details as they appear on your BVN to generate your account.
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="First Name"
@@ -322,7 +322,7 @@ export default function MemberWallet() {
                 onChange={(e) => setVAData({ ...vaData, firstName: e.target.value })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="Last Name"
@@ -332,7 +332,7 @@ export default function MemberWallet() {
                 onChange={(e) => setVAData({ ...vaData, lastName: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Middle Name (Optional)"
@@ -341,7 +341,7 @@ export default function MemberWallet() {
                 onChange={(e) => setVAData({ ...vaData, middleName: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Email Address"
@@ -350,7 +350,7 @@ export default function MemberWallet() {
                 onChange={(e) => setVAData({ ...vaData, email: e.target.value })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="Phone Number"
@@ -360,7 +360,7 @@ export default function MemberWallet() {
                 onChange={(e) => setVAData({ ...vaData, phone: e.target.value })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="BVN"
@@ -371,7 +371,7 @@ export default function MemberWallet() {
                 helperText="11-digit number"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Residential Address"
